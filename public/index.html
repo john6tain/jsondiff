@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSON Diff Tool — Compare, Format, and Highlight JSON Changes</title>
+  <meta name="description" content="Free online JSON diff tool to compare, format, and review JSON changes. See added, removed, and modified values with split-view and inline highlights.">
+  <meta name="keywords" content="JSON diff, JSON compare, compare JSON, JSON formatter, JSON difference checker, online JSON diff tool">
+  <meta name="robots" content="index, follow">
+  <meta name="author" content="JSON Diff">
+  <meta name="theme-color" content="#070b12">
+  <link rel="canonical" href="/">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="JSON Diff Tool — Compare and Format JSON">
+  <meta property="og:description" content="Compare two JSON objects, format payloads, and spot added, removed, and modified values with clear inline highlights.">
+  <meta property="og:site_name" content="JSON Diff">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="JSON Diff Tool — Compare and Format JSON">
+  <meta name="twitter:description" content="Free JSON comparison tool with formatting, split view, change list, and inline highlights.">
+
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "JSON Diff",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Any",
+      "description": "Compare, format, and review JSON changes with split-view and inline highlights.",
+      "featureList": [
+        "Compare two JSON objects",
+        "Format JSON payloads",
+        "Show added, removed, and modified values",
+        "Split-view JSON diff",
+        "Change list view"
+      ],
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23070b12'/%3E%3Cpath d='M19 11c-7 0-10 4-10 11v4c0 3-2 5-5 6 3 1 5 3 5 6v4c0 7 3 11 10 11' fill='none' stroke='%23edf3fb' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M45 11c7 0 10 4 10 11v4c0 3 2 5 5 6-3 1-5 3-5 6v4c0 7-3 11-10 11' fill='none' stroke='%23edf3fb' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='23' y='16' width='8' height='32' rx='3' fill='none' stroke='%234f8dcc' stroke-width='3'/%3E%3Crect x='33' y='16' width='8' height='32' rx='3' fill='none' stroke='%234f8dcc' stroke-width='3'/%3E%3Cpath d='M26 27h3M36 27h3' stroke='%234f8dcc' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M26 39h3' stroke='%23ef5f5f' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M36 39h3' stroke='%234fb56d' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+</head>
+<body>
+  <header class="header">
+    <div class="header-brand">
+      <div class="logo" aria-hidden="true">
+        <svg viewBox="0 0 52 44" role="img">
+          <path class="logo-brace" d="M15 7c-5.5 0-8 3-8 8v3c0 2.2-1.4 3.5-3.4 4 2 0.5 3.4 1.8 3.4 4v3c0 5 2.5 8 8 8"/>
+          <path class="logo-brace" d="M37 7c5.5 0 8 3 8 8v3c0 2.2 1.4 3.5 3.4 4-2 0.5-3.4 1.8-3.4 4v3c0 5-2.5 8-8 8"/>
+          <rect x="19" y="10" width="6" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+          <rect x="27" y="10" width="6" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M21 18h2M29 18h2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path class="logo-del" d="M21 27h2" stroke-width="2" stroke-linecap="round"/>
+          <path class="logo-ins" d="M29 27h2" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <p class="eyebrow">JSON diff</p>
+        <h1>Diff with surgical highlights</h1>
+      </div>
+    </div>
+    <div class="view-toggle" id="viewToggle" aria-label="Choose result view">
+      <button class="toggle-btn active" data-view="split">Split view</button>
+      <button class="toggle-btn" data-view="table">Change list</button>
+    </div>
+  </header>
+
+  <main class="main">
+    <section class="intro" aria-label="JSON diff workspace introduction">
+      <div>
+        <p class="kicker">Paste, format, and compare JSON</p>
+        <h2>Find changed keys, values, and lines fast.</h2>
+      </div>
+      <div class="legend" aria-label="Diff color legend">
+        <span><i class="legend-same"></i>Similar line</span>
+        <span><i class="legend-del"></i>Removed text</span>
+        <span><i class="legend-ins"></i>Added text</span>
+      </div>
+    </section>
+
+    <div class="input-row">
+      <div class="panel" id="panelLeft">
+        <div class="panel-bar">
+          <span class="panel-title"><span class="dot red"></span>Original payload</span>
+          <div class="panel-btns">
+            <button class="action-btn" onclick="formatJSON('json1')">Format</button>
+            <button class="action-btn" onclick="clearJSON('json1')">Clear</button>
+            <button class="action-btn" onclick="copyJSON('json1')">Copy</button>
+          </div>
+        </div>
+        <textarea id="json1" spellcheck="false" placeholder='{ "key": "value" }'></textarea>
+      </div>
+      <div class="panel" id="panelRight">
+        <div class="panel-bar">
+          <span class="panel-title"><span class="dot green"></span>Modified payload</span>
+          <div class="panel-btns">
+            <button class="action-btn" onclick="formatJSON('json2')">Format</button>
+            <button class="action-btn" onclick="clearJSON('json2')">Clear</button>
+            <button class="action-btn" onclick="copyJSON('json2')">Copy</button>
+          </div>
+        </div>
+        <textarea id="json2" spellcheck="false" placeholder='{ "key": "new value" }'></textarea>
+      </div>
+    </div>
+
+    <div class="compare-row">
+      <button id="compareBtn" class="btn-compare" onclick="compare()">
+        <span>Compare JSON</span>
+        <kbd>Ctrl ↵</kbd>
+      </button>
+      <span class="hint">Highlights are aligned by structure first, then by character.</span>
+    </div>
+
+    <div id="error" class="error hidden"></div>
+    <div id="results" class="results"></div>
+
+    <section class="seo-content">
+      <div class="seo-card">
+        <h3>What is JSON diff?</h3>
+        <p>JSON diff is the process of comparing two JSON objects and identifying exactly what changed between them. It shows added keys, removed keys, and modified values — so you can spot the difference without reading every line manually.</p>
+      </div>
+      <div class="seo-card">
+        <h3>How this tool works</h3>
+        <p>Paste an original JSON payload on the left and a modified version on the right. Click <strong>Compare JSON</strong>. The split view highlights changed lines in amber, deleted text in red, and added text in green — down to the exact characters that differ. The change list view shows a structural breakdown of every added, removed, and edited field.</p>
+      </div>
+      <div class="seo-card">
+        <h3>Why compare JSON?</h3>
+        <p>API responses, config files, and database exports are all JSON. When something breaks, you need to know <em>exactly</em> what changed. This tool gives you surgical, character-level highlights instead of dumping two files side by side and hoping you spot it.</p>
+      </div>
+      <div class="seo-card">
+        <h3>Features</h3>
+        <ul>
+          <li>Split-view diff with line-level alignment</li>
+          <li>Character-level inline highlights for modified lines</li>
+          <li>Structural change list view</li>
+          <li>Syntax-highlighted JSON output</li>
+          <li>Format, clear, and copy buttons on each panel</li>
+          <li>Keyboard shortcut: <kbd>Ctrl</kbd> + <kbd>Enter</kbd> to compare</li>
+          <li>Runs entirely in your browser — no data is sent to any server</li>
+        </ul>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p>JSON Diff Tool — open source, runs in your browser. No tracking. No server-side processing.</p>
+    </footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
