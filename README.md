@@ -62,6 +62,21 @@ jsondiff-web/
 4. **Character diff (LCS)** — each modified pair runs a character-level LCS to find exactly which characters changed, producing inline red/green highlights
 5. **Render** — the split view uses a two-column table with synchronized line numbers; the change list view sends both payloads to the `/api/diff` endpoint for structural comparison via `deep-diff`
 
+## SEO
+
+- `robots.txt` — crawler directives with sitemap reference
+- `sitemap.xml` — XML sitemap for search engines
+- Meta tags — title, description, keywords, Open Graph, Twitter Card
+- Structured data — JSON-LD WebApplication schema
+- Google Search Console — verified via HTML file
+
+## Versioning
+
+The app displays its version in the bottom-left corner. Current version: **0.0.1**.
+
+To bump the version, update the version string in:
+- `public/index.html` — the `<div class="version-badge">` element
+
 ## Deployment
 
 ### Vercel
