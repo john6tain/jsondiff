@@ -2,6 +2,10 @@
 
 A fast, client-side JSON diff tool with surgical character-level highlights, split view, and structural change list.
 
+**Live:** [johnsondiff.vercel.app](https://johnsondiff.vercel.app)
+
+**Version:** 0.0.1
+
 ## Features
 
 - **Split-view diff** — line-level alignment with gutter markers (+, -, ~)
@@ -41,7 +45,8 @@ jsondiff-web/
 │   ├── style.css       # Dark theme styles
 │   ├── app.js          # Client-side diff engine + UI
 │   ├── robots.txt      # Crawler directives
-│   └── sitemap.xml     # Sitemap for search engines
+│   ├── sitemap.xml     # Sitemap for search engines
+│   └── google*.html    # Google Search Console verification
 ├── server.js           # Express backend (structural diff API)
 ├── package.json
 ├── vercel.json         # Vercel routing config
