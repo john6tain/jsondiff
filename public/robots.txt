@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: https://jsondiff.dev/sitemap.xml
+Sitemap: https://jsondiff-jj.vercel.app/sitemap.xml
