@@ -379,3 +379,18 @@ textarea::placeholder { color: var(--text-dim); opacity: 0.55; }
   .tv-header span:nth-child(3), .tv-row .tv-val:nth-child(3) { display: none; }
   .seo-content { grid-template-columns: 1fr; }
 }
+
+.version-badge {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 6px;
+  z-index: 100;
+  user-select: none;
+}
