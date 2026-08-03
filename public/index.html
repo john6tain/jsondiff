@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JSON Diff Tool — Compare, Format, and Highlight JSON Changes</title>
-  <meta name="description" content="Free online JSON diff tool to compare, format, and review JSON changes. See added, removed, and modified values with split-view and inline highlights.">
+  <meta name="description" content="Free online JSON diff tool to compare, format, and review JSON changes. See added, removed, and modified values with split-view and inline highlights. Runs entirely in your browser — nothing leaves your device.">
   <meta name="keywords" content="JSON diff, JSON compare, compare JSON, JSON formatter, JSON difference checker, online JSON diff tool">
   <meta name="robots" content="index, follow">
   <meta name="author" content="JSON Diff">
@@ -28,13 +28,14 @@
       "name": "JSON Diff",
       "applicationCategory": "DeveloperApplication",
       "operatingSystem": "Any",
-      "description": "Compare, format, and review JSON changes with split-view and inline highlights.",
+      "description": "Compare, format, and review JSON changes with split-view and inline highlights. Runs entirely in the browser.",
       "featureList": [
         "Compare two JSON objects",
         "Format JSON payloads",
         "Show added, removed, and modified values",
         "Split-view JSON diff",
-        "Change list view"
+        "Change list view",
+        "Fully client-side processing"
       ],
       "offers": {
         "@type": "Offer",
@@ -43,7 +44,72 @@
       }
     }
   </script>
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Does key order matter in JSON diff?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. JSON objects are unordered collections of key/value pairs, so {\"a\": 1, \"b\": 2} and {\"b\": 2, \"a\": 1} are the same document. This tool parses both sides and pretty-prints them before comparing, so key order is never reported as a difference. What matters is the set of keys and the values attached to them."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I diff JSON arrays?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Paste both documents into the two panels as usual. Arrays are compared element by element, by index: an element present on the right but not the left is reported as added, the reverse as removed, and an element that changed in place as edited. Because order is part of an array's meaning, reordering elements is reported as removals and additions at the affected indices."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I diff JSON against YAML?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Not directly — both panels expect JSON input. To compare a YAML file, convert it to JSON first (most languages have a one-liner such as yq) and paste the result. The JSON vs YAML guide covers when each format makes sense."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is my data uploaded anywhere?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Both views run entirely in your browser. The split view compares lines locally and the change list uses the same diff engine bundled into the page — nothing is POSTed to any server, and the site sets no cookies and runs no tracking scripts. You can confirm this in your browser's network tab: comparing two payloads produces zero requests."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What's the difference between the split view and the change list?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The split view aligns the two payloads side by side, highlights changed lines, then drills into each changed line to highlight the exact characters that differ. The change list is a structured table: one row per added, removed, or edited field, with the full path and the old and new values. Use the split view to read a diff; use the change list to grep or copy a summary into an issue or pull request."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Why does a reordered array show as removed and added?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Because arrays are ordered, and the diff reports changes by index. Swapping two elements changes their indices, so the diff sees the old value disappear from one index and a new value appear at another. If order genuinely doesn't matter to you, sort both arrays before comparing and only real differences will remain."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does the tool handle large JSON files?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "It is designed to stay responsive on typical payloads. For very large documents the split view switches to a linear comparison mode instead of the full alignment algorithm, so it keeps working but pairs up similar lines less aggressively. For multi-megabyte files, compare the relevant subtree rather than the whole document."
+          }
+        }
+      ]
+    }
+  </script>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="content.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -68,6 +134,12 @@
         <h1>Diff with surgical highlights</h1>
       </div>
     </div>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="/" aria-current="page">Home</a>
+      <a href="/guides/">Guides</a>
+      <a href="/about.html">About</a>
+      <a href="/privacy.html">Privacy</a>
+    </nav>
     <div class="view-toggle" id="viewToggle" aria-label="Choose result view">
       <button class="toggle-btn active" data-view="split">Split view</button>
       <button class="toggle-btn" data-view="table">Change list</button>
@@ -123,40 +195,248 @@
     <div id="error" class="error hidden"></div>
     <div id="results" class="results"></div>
 
-    <section class="seo-content">
-      <div class="seo-card">
-        <h3>What is JSON diff?</h3>
-        <p>JSON diff is the process of comparing two JSON objects and identifying exactly what changed between them. It shows added keys, removed keys, and modified values — so you can spot the difference without reading every line manually.</p>
-      </div>
-      <div class="seo-card">
-        <h3>How this tool works</h3>
-        <p>Paste an original JSON payload on the left and a modified version on the right. Click <strong>Compare JSON</strong>. The split view highlights changed lines in amber, deleted text in red, and added text in green — down to the exact characters that differ. The change list view shows a structural breakdown of every added, removed, and edited field.</p>
-      </div>
-      <div class="seo-card">
-        <h3>Why compare JSON?</h3>
-        <p>API responses, config files, and database exports are all JSON. When something breaks, you need to know <em>exactly</em> what changed. This tool gives you surgical, character-level highlights instead of dumping two files side by side and hoping you spot it.</p>
-      </div>
-      <div class="seo-card">
-        <h3>Features</h3>
-        <ul>
-          <li>Split-view diff with line-level alignment</li>
-          <li>Character-level inline highlights for modified lines</li>
-          <li>Structural change list view</li>
-          <li>Syntax-highlighted JSON output</li>
-          <li>Format, clear, and copy buttons on each panel</li>
-          <li>Keyboard shortcut: <kbd>Ctrl</kbd> + <kbd>Enter</kbd> to compare</li>
-          <li>Runs entirely in your browser — no data is sent to any server</li>
-        </ul>
-      </div>
-    </section>
+    <div class="content-wrap">
 
-    <footer class="footer">
-      <p>JSON Diff Tool — open source, runs in your browser. No tracking. No server-side processing.</p>
+      <section class="section" id="what-is-json-diff">
+        <div class="section-head">
+          <span class="kicker">Learn</span>
+          <h2>What is a JSON diff?</h2>
+        </div>
+        <p>A JSON diff is a side-by-side comparison of two JSON documents that reports exactly what changed: which keys were added, removed, or edited. Instead of eyeballing two walls of braces, you get a focused list of differences — and, in this tool, character-level highlights on the precise part of each changed line.</p>
+        <p>That matters because JSON is the lingua franca of web APIs, configuration files, and data exports. When an integration breaks or a deployment behaves differently than it did yesterday, diffing the old document against the new one is the fastest way to understand why — the cause is usually one small field, and a good diff makes it jump out in seconds. New to this? The <a href="/guides/">guides</a> walk through real scenarios step by step.</p>
+      </section>
+
+      <section class="section" id="examples">
+        <div class="section-head">
+          <span class="kicker">Worked examples</span>
+          <h2>Four worked examples</h2>
+          <p>Each example pairs a before and after payload, with changed values highlighted the way the tool flags them.</p>
+        </div>
+
+        <div class="example">
+          <h3 class="example-title"><span class="num">1</span>A field type changed in an API response</h3>
+          <p>An e-commerce API you integrate with switched <code>price</code> from a string to a number. Same digits, different type — and it breaks any code that concatenates or compares the value.</p>
+          <div class="two-up">
+            <figure class="code-block">
+              <div class="code-head"><span class="code-label"><span class="dot red"></span>Before</span><span class="code-tag">response-2026-06-01.json</span></div>
+              <pre><code>{
+  "id": "prod_1042",
+  "name": "Standing desk",
+  "price": "<span class="hl-del">"349.00"</span>",
+  "inStock": true
+}</code></pre>
+            </figure>
+            <figure class="code-block">
+              <div class="code-head"><span class="code-label"><span class="dot green"></span>After</span><span class="code-tag">response-2026-08-01.json</span></div>
+              <pre><code>{
+  "id": "prod_1042",
+  "name": "Standing desk",
+  "price": <span class="hl-ins">349.00</span>,
+  "inStock": true
+}</code></pre>
+            </figure>
+          </div>
+          <p class="example-note">The diff flags one edited line: <code>price</code> went from <code>"349.00"</code> to <code>349.00</code>. A string and a number look alike but behave differently — <code>"349.00" + 0</code> yields the string <code>"349.000"</code>, while <code>349 + 0</code> is the number <code>349</code>. Type changes are a classic silent breakage in API integrations, and exactly what a structural diff catches.</p>
+        </div>
+
+        <div class="example">
+          <h3 class="example-title"><span class="num">2</span>A config file added a key and changed a value</h3>
+          <p>A service config gained a new <code>maxRetries</code> key and a longer <code>timeout</code> between deploys. Nothing was deleted — just one addition and one edit.</p>
+          <div class="two-up">
+            <figure class="code-block">
+              <div class="code-head"><span class="code-label"><span class="dot red"></span>Before</span><span class="code-tag">checkout-service.json</span></div>
+              <pre><code>{
+  "name": "checkout-service",
+  "timeout": <span class="hl-del">30</span>,
+  "cache": {
+    "enabled": true,
+    "ttl": 300
+  }
+}</code></pre>
+            </figure>
+            <figure class="code-block">
+              <div class="code-head"><span class="code-label"><span class="dot green"></span>After</span><span class="code-tag">checkout-service.json</span></div>
+              <pre><code>{
+  "name": "checkout-service",
+  "timeout": <span class="hl-ins">45</span>,
+  <span class="hl-ins">"maxRetries": 3</span>,
+  "cache": {
+    "enabled": true,
+    "ttl": 300
+  }
+}</code></pre>
+            </figure>
+          </div>
+          <p class="example-note"><code>maxRetries</code> is added and <code>timeout</code> edited from <code>30</code> to <code>45</code>, while <code>name</code> and the whole <code>cache</code> block are identical and stay quiet. Unchanged subtrees produce no noise — that's what lets the two real changes stand out at a glance.</p>
+        </div>
+
+        <div class="example">
+          <h3 class="example-title"><span class="num">3</span>A merge conflict buried in a nested object</h3>
+          <p>Two teammates edited <code>deploy</code> settings in separate branches. The merge conflict sits inside a nested object — the diff drills down to show which keys disagree.</p>
+          <div class="two-up">
+            <figure class="code-block">
+              <div class="code-head"><span class="code-label"><span class="dot red"></span>Branch A</span><span class="code-tag">deploy.json</span></div>
+              <pre><code>{
+  "deploy": {
+    "region": "us-east-1",
+    "instances": <span class="hl-del">2</span>,
+    "strategy": "<span class="hl-del">rolling</span>"
+  }
+}</code></pre>
+            </figure>
+            <figure class="code-block">
+              <div class="code-head"><span class="code-label"><span class="dot green"></span>Branch B</span><span class="code-tag">deploy.json</span></div>
+              <pre><code>{
+  "deploy": {
+    "region": "us-east-1",
+    "instances": <span class="hl-ins">4</span>,
+    "strategy": "<span class="hl-ins">blue-green</span>"
+  }
+}</code></pre>
+            </figure>
+          </div>
+          <p class="example-note">The diff reports <code>deploy.instances</code> (<code>2</code> → <code>4</code>) and <code>deploy.strategy</code> (<code>"rolling"</code> → <code>"blue-green"</code>) while <code>region</code> stays untouched. With full paths shown, resolving the conflict is a choice between two values — not a hunt through layers of braces.</p>
+        </div>
+
+        <div class="example">
+          <h3 class="example-title"><span class="num">4</span>An array was reordered</h3>
+          <p>A load balancer reordered its host list. The <em>set</em> of hosts is identical — only the order changed.</p>
+          <div class="two-up">
+            <figure class="code-block">
+              <div class="code-head"><span class="code-label"><span class="dot red"></span>Before</span><span class="code-tag">hosts.json</span></div>
+              <pre><code>{
+  "hosts": [
+    "web-a",
+    <span class="hl-del">"web-b"</span>,
+    <span class="hl-del">"db-primary"</span>,
+    "cache-1"
+  ]
+}</code></pre>
+            </figure>
+            <figure class="code-block">
+              <div class="code-head"><span class="code-label"><span class="dot green"></span>After</span><span class="code-tag">hosts.json</span></div>
+              <pre><code>{
+  "hosts": [
+    "web-a",
+    <span class="hl-ins">"db-primary"</span>,
+    <span class="hl-ins">"web-b"</span>,
+    "cache-1"
+  ]
+}</code></pre>
+            </figure>
+          </div>
+          <p class="example-note">Arrays are ordered, so a swap shows up as a removal and an addition at the changed indices. If order carries meaning (priority, queue position, sort order), that's a real change; if it doesn't, sort both arrays first and the diff goes quiet. See the guide on <a href="/guides/json-arrays-ordering.html">JSON arrays and ordering</a>.</p>
+        </div>
+      </section>
+
+      <section class="section" id="edge-cases">
+        <div class="section-head">
+          <span class="kicker">Edge cases</span>
+          <h2>Edge cases this tool handles</h2>
+          <p>Here's how this tool handles the cases that trip up naive comparisons.</p>
+        </div>
+        <div class="edge-grid">
+          <div class="edge-card">
+            <h3>Array reordering</h3>
+            <p>Arrays are compared by index, so reordering elements is reported as removes and adds even when the set is unchanged. If order carries meaning — priority, queue position, sort order — that's a real change.</p>
+          </div>
+          <div class="edge-card">
+            <h3>Nested object changes</h3>
+            <p>Changes two or more levels deep are detected and shown with their full path (e.g. <code>deploy.instances</code>), so a buried modification is never missed.</p>
+          </div>
+          <div class="edge-card">
+            <h3>Key order differences</h3>
+            <p>JSON objects are unordered by definition. The tool parses and pretty-prints both sides before diffing, so identical objects with keys in a different order compare as identical — key order is never a difference.</p>
+          </div>
+          <div class="edge-card">
+            <h3>null vs undefined vs missing</h3>
+            <p><code>{"a": null}</code> and <code>{"a": 1}</code> are an edit; <code>{"a": null}</code> and <code>{}</code> are a removed key. Each is reported precisely, not collapsed into a vague "something changed".</p>
+          </div>
+          <div class="edge-card">
+            <h3>Type coercion</h3>
+            <p><code>"1"</code> (string), <code>1</code> (number), and <code>true</code> (boolean) are distinct. The tool never coerces types, so a string-to-number change is surfaced rather than silently ignored.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="faq">
+        <div class="section-head">
+          <span class="kicker">FAQ</span>
+          <h2>Frequently asked questions</h2>
+        </div>
+        <div class="faq">
+          <details>
+            <summary>Does key order matter in JSON diff?</summary>
+            <div class="faq-body">
+              <p>No. JSON objects are unordered collections of key/value pairs — <code>{"a": 1, "b": 2}</code> and <code>{"b": 2, "a": 1}</code> are the same document. This tool parses both sides and pretty-prints them before comparing, so key order is never reported as a difference. What matters is the set of keys and the values attached to them.</p>
+            </div>
+          </details>
+          <details>
+            <summary>How do I diff JSON arrays?</summary>
+            <div class="faq-body">
+              <p>Paste both documents into the two panels as usual. Arrays are compared element by element, by index: an element present on the right but not the left is reported as added, the reverse as removed, and an element that changed in place as edited. Because order is part of an array's meaning, reordering elements is reported as removals and additions at the affected indices.</p>
+            </div>
+          </details>
+          <details>
+            <summary>Can I diff JSON against YAML?</summary>
+            <div class="faq-body">
+              <p>Not directly — both panels expect JSON input. Convert a YAML file to JSON first (<code>yq</code> does this in one command) and paste the result. The <a href="/guides/json-vs-yaml.html">JSON vs YAML</a> guide covers when each format makes sense.</p>
+            </div>
+          </details>
+          <details>
+            <summary>Is my data uploaded anywhere?</summary>
+            <div class="faq-body">
+              <p>No. Both views run entirely in your browser — nothing is POSTed to any server, and the site sets no cookies and runs no tracking scripts. You can confirm it in your browser's network tab: comparing two payloads produces zero requests. See the <a href="/privacy.html">privacy policy</a> for the full statement.</p>
+            </div>
+          </details>
+          <details>
+            <summary>What's the difference between the split view and the change list?</summary>
+            <div class="faq-body">
+              <p>The split view aligns the two payloads side by side and highlights the exact changed characters in each changed line. The change list is a structured table: one row per added, removed, or edited field, with the full path and old and new values. Use the split view to read a diff; use the change list to copy a summary into an issue or PR.</p>
+            </div>
+          </details>
+          <details>
+            <summary>Why does a reordered array show as removed and added?</summary>
+            <div class="faq-body">
+              <p>Because arrays are ordered, and the diff reports changes by index. Swapping elements changes their indices, so the old value disappears from one index and a new one appears at another. If order doesn't matter to you, sort both arrays first and only real differences remain.</p>
+            </div>
+          </details>
+          <details>
+            <summary>Does the tool handle large JSON files?</summary>
+            <div class="faq-body">
+              <p>It's designed to stay responsive on typical payloads. For very large documents the split view switches to a linear comparison mode, so it keeps working but pairs similar lines less aggressively. For multi-megabyte files, compare the relevant subtree rather than the whole document.</p>
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <!-- Ad slot: sits below the written content, far from the tool inputs.
+           Dormant until window.ADSENSE_CLIENT and a real data-ad-slot are set.
+           See ad-slot.js. -->
+      <div class="ad-slot" data-ad-slot="0000000000" aria-hidden="true">
+        <span class="ad-note">Advertisement</span>
+      </div>
+
+    </div>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <p class="footer-brand">JSON Diff — a free, open-source JSON comparison tool.</p>
+        <nav class="footer-nav" aria-label="Footer">
+          <a href="/">Home</a>
+          <a href="/guides/">Guides</a>
+          <a href="/about.html">About</a>
+          <a href="/privacy.html">Privacy</a>
+        </nav>
+        <p class="footer-note">Runs entirely in your browser — your JSON never leaves your device. No sign-up, no account, no server-side processing.</p>
+      </div>
     </footer>
 
     <div class="version-badge">v0.0.1</div>
   </main>
 
+  <script src="vendor/deep-diff.min.js"></script>
+  <script src="ad-slot.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

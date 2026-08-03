@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSON Arrays and Ordering: What a Diff Can and Can't Tell You</title>
+  <meta name="description" content="Arrays are ordered, objects are not. Why reordered arrays show up as removes and adds in a JSON diff — and when that's a real change you should care about.">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#070b12">
+  <link rel="canonical" href="https://johnsondiff.vercel.app/guides/json-arrays-ordering.html">
+
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="JSON Arrays and Ordering: What a Diff Can and Can't Tell You">
+  <meta property="og:description" content="Why reordered arrays show up as removes and adds — and when that's a real change.">
+  <meta property="og:site_name" content="JSON Diff">
+  <meta property="og:url" content="https://johnsondiff.vercel.app/guides/json-arrays-ordering.html">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="JSON Arrays and Ordering: What a Diff Can and Can't Tell You">
+  <meta name="twitter:description" content="Why reordered arrays show up as removes and adds.">
+
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "JSON arrays and ordering: what a diff can and can't tell you",
+      "description": "Why reordered arrays show up as removes and adds in a JSON diff — and when that's a real change.",
+      "datePublished": "2026-08-03",
+      "dateModified": "2026-08-03",
+      "author": { "@type": "Person", "name": "JSON Diff" },
+      "publisher": { "@type": "Organization", "name": "JSON Diff", "url": "https://johnsondiff.vercel.app/" },
+      "mainEntityOfPage": "https://johnsondiff.vercel.app/guides/json-arrays-ordering.html"
+    }
+  </script>
+
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/content.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23070b12'/%3E%3Cpath d='M19 11c-7 0-10 4-10 11v4c0 3-2 5-5 6 3 1 5 3 5 6v4c0 7 3 11 10 11' fill='none' stroke='%23edf3fb' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M45 11c7 0 10 4 10 11v4c0 3 2 5 5 6-3 1-5 3-5 6v4c0 7-3 11-10 11' fill='none' stroke='%23edf3fb' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='23' y='16' width='8' height='32' rx='3' fill='none' stroke='%234f8dcc' stroke-width='3'/%3E%3Crect x='33' y='16' width='8' height='32' rx='3' fill='none' stroke='%234f8dcc' stroke-width='3'/%3E%3Cpath d='M26 27h3M36 27h3' stroke='%234f8dcc' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M26 39h3' stroke='%23ef5f5f' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M36 39h3' stroke='%234fb56d' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+</head>
+<body>
+  <header class="header">
+    <a class="header-brand" href="/">
+      <div class="logo" aria-hidden="true">
+        <svg viewBox="0 0 52 44" role="img">
+          <path class="logo-brace" d="M15 7c-5.5 0-8 3-8 8v3c0 2.2-1.4 3.5-3.4 4 2 0.5 3.4 1.8 3.4 4v3c0 5 2.5 8 8 8"/>
+          <path class="logo-brace" d="M37 7c5.5 0 8 3 8 8v3c0 2.2 1.4 3.5 3.4 4-2 0.5-3.4 1.8-3.4 4v3c0 5-2.5 8-8 8"/>
+          <rect x="19" y="10" width="6" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+          <rect x="27" y="10" width="6" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M21 18h2M29 18h2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path class="logo-del" d="M21 27h2" stroke-width="2" stroke-linecap="round"/>
+          <path class="logo-ins" d="M29 27h2" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <p class="eyebrow">JSON diff</p>
+        <span class="brand-name">Diff with surgical highlights</span>
+      </div>
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="/">Home</a>
+      <a href="/guides/" aria-current="page">Guides</a>
+      <a href="/about.html">About</a>
+      <a href="/privacy.html">Privacy</a>
+    </nav>
+  </header>
+
+  <main class="page prose">
+    <span class="kicker">Guide</span>
+    <h1 class="page-title">JSON arrays and ordering: what a diff can and can't tell you</h1>
+    <div class="article-meta">
+      <span>Updated August 3, 2026</span>
+      <span>~4 min read</span>
+    </div>
+
+    <p class="lede">Arrays are ordered, objects are not — and that single fact drives most of the surprising results people get from JSON diff tools.</p>
+
+    <h2>An array is an ordered list</h2>
+    <p>Unlike an object's keys, an array's positions are part of the data. <code>[1, 2, 3]</code> and <code>[3, 2, 1]</code> are different documents because <code>1</code> lives at a different index in each. This is by design: arrays model lists — queues, leaderboards, logs, hosts in a load balancer — where position carries meaning.</p>
+
+    <h2>How the diff reports array changes</h2>
+    <p>Because position matters, a structural diff compares arrays element by element, by index:</p>
+    <ul>
+      <li>An element at index <code>i</code> on the right that isn't there on the left is <strong>added</strong> at <code>arr[i]</code>.</li>
+      <li>The reverse is <strong>removed</strong>.</li>
+      <li>An element that changed in place is <strong>edited</strong>.</li>
+    </ul>
+    <p>The consequence: <em>reordering is reported as removes and adds</em>, never as "moves." The tool doesn't try to guess which element moved where — it tells you what happened at each index, which is unambiguous and easy to reason about.</p>
+
+    <h2>Worked example: a reordered priority list</h2>
+    <div class="two-up">
+      <figure class="code-block">
+        <div class="code-head"><span class="code-label"><span class="dot red"></span>Before</span><span class="code-tag">priorities.json</span></div>
+        <pre><code>{
+  "tasks": [
+    "pay-invoices",
+    "send-receipts",
+    "generate-report"
+  ]
+}</code></pre>
+      </figure>
+      <figure class="code-block">
+        <div class="code-head"><span class="code-label"><span class="dot green"></span>After</span><span class="code-tag">priorities.json</span></div>
+        <pre><code>{
+  "tasks": [
+    "send-receipts",
+    "pay-invoices",
+    "generate-report"
+  ]
+}</code></pre>
+      </figure>
+    </div>
+    <p>The set of tasks is identical — but "send-receipts" is now the highest priority. A diff that ignored order would report "no changes" and you'd miss a scheduling change that reorders real work. A diff that respects order flags index 0 and index 1. Which one you want depends entirely on what the array means.</p>
+
+    <h2>Reordering vs set membership</h2>
+    <p>The question to ask before comparing is: <em>does order carry meaning here?</em></p>
+    <ul>
+      <li><strong>Order means something</strong> (priority queue, sorted leaderboard, playback sequence): the reorder <em>is</em> the change. Report it, review it, keep it.</li>
+      <li><strong>Order is incidental</strong> (a bag of tags, a set of unique IDs): the reorder is noise. Sort both arrays before comparing, and only real differences — added or removed elements — will survive.</li>
+    </ul>
+    <p>There's a reason the tool doesn't auto-sort: it can't know which case you're in. Forcing sorted comparison would silently destroy exactly the signal someone debugging a priority change is looking for.</p>
+
+    <h2>What the diff can't tell you</h2>
+    <p>A diff reports index-level changes; it does not tell you <em>why</em> an array changed. If an element is removed and a new one added, that could be a rename (same item, new string), a swap (two items exchanged), or a genuine replacement (one item deleted, a different one inserted). The change list gives you the before/after values at each index — the interpretation is up to you, and usually obvious from the values themselves.</p>
+
+    <h2>Practical rules</h2>
+    <ul>
+      <li>Diff arrays by index unless you have a reason not to.</li>
+      <li>If you don't care about order, sort first — deterministically, on both sides.</li>
+      <li>If you care only about membership (is this value present or not), compare sets instead, and treat reorder output as expected noise.</li>
+    </ul>
+
+    <div class="ad-slot" data-ad-slot="0000000000" aria-hidden="true">
+      <span class="ad-note">Advertisement</span>
+    </div>
+
+    <p><a class="cta" href="/">Diff your arrays and see the indices <kbd>Ctrl ↵</kbd></a></p>
+    <p>Related: <a href="/guides/diff-json-api-responses.html">Diffing JSON API responses</a> · <a href="/guides/json-diff-mistakes.html">Common JSON diff mistakes</a></p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p class="footer-brand">JSON Diff — a free, open-source JSON comparison tool.</p>
+      <nav class="footer-nav" aria-label="Footer">
+        <a href="/">Home</a>
+        <a href="/guides/">Guides</a>
+        <a href="/about.html">About</a>
+        <a href="/privacy.html">Privacy</a>
+      </nav>
+      <p class="footer-note">Runs entirely in your browser — your JSON never leaves your device. No sign-up, no account, no server-side processing.</p>
+    </div>
+  </footer>
+
+  <script src="/ad-slot.js"></script>
+</body>
+</html>

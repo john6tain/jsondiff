@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Common JSON Diff Mistakes and How to Avoid Them</title>
+  <meta name="description" content="Seven input mistakes that make a JSON diff lie — diffing raw text, treating key order as meaningful, ignoring type changes, and more — and how to avoid each one.">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#070b12">
+  <link rel="canonical" href="https://johnsondiff.vercel.app/guides/json-diff-mistakes.html">
+
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Common JSON Diff Mistakes and How to Avoid Them">
+  <meta property="og:description" content="Seven input mistakes that make a JSON diff lie, and how to avoid each one.">
+  <meta property="og:site_name" content="JSON Diff">
+  <meta property="og:url" content="https://johnsondiff.vercel.app/guides/json-diff-mistakes.html">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Common JSON Diff Mistakes and How to Avoid Them">
+  <meta name="twitter:description" content="Seven input mistakes that make a JSON diff lie.">
+
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "Common JSON diff mistakes and how to avoid them",
+      "description": "Seven input mistakes that make a JSON diff lie, and how to avoid each one.",
+      "datePublished": "2026-08-03",
+      "dateModified": "2026-08-03",
+      "author": { "@type": "Person", "name": "JSON Diff" },
+      "publisher": { "@type": "Organization", "name": "JSON Diff", "url": "https://johnsondiff.vercel.app/" },
+      "mainEntityOfPage": "https://johnsondiff.vercel.app/guides/json-diff-mistakes.html"
+    }
+  </script>
+
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/content.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23070b12'/%3E%3Cpath d='M19 11c-7 0-10 4-10 11v4c0 3-2 5-5 6 3 1 5 3 5 6v4c0 7 3 11 10 11' fill='none' stroke='%23edf3fb' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M45 11c7 0 10 4 10 11v4c0 3 2 5 5 6-3 1-5 3-5 6v4c0 7-3 11-10 11' fill='none' stroke='%23edf3fb' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='23' y='16' width='8' height='32' rx='3' fill='none' stroke='%234f8dcc' stroke-width='3'/%3E%3Crect x='33' y='16' width='8' height='32' rx='3' fill='none' stroke='%234f8dcc' stroke-width='3'/%3E%3Cpath d='M26 27h3M36 27h3' stroke='%234f8dcc' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M26 39h3' stroke='%23ef5f5f' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M36 39h3' stroke='%234fb56d' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+</head>
+<body>
+  <header class="header">
+    <a class="header-brand" href="/">
+      <div class="logo" aria-hidden="true">
+        <svg viewBox="0 0 52 44" role="img">
+          <path class="logo-brace" d="M15 7c-5.5 0-8 3-8 8v3c0 2.2-1.4 3.5-3.4 4 2 0.5 3.4 1.8 3.4 4v3c0 5 2.5 8 8 8"/>
+          <path class="logo-brace" d="M37 7c5.5 0 8 3 8 8v3c0 2.2 1.4 3.5 3.4 4-2 0.5-3.4 1.8-3.4 4v3c0 5-2.5 8-8 8"/>
+          <rect x="19" y="10" width="6" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+          <rect x="27" y="10" width="6" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M21 18h2M29 18h2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path class="logo-del" d="M21 27h2" stroke-width="2" stroke-linecap="round"/>
+          <path class="logo-ins" d="M29 27h2" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <p class="eyebrow">JSON diff</p>
+        <span class="brand-name">Diff with surgical highlights</span>
+      </div>
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="/">Home</a>
+      <a href="/guides/" aria-current="page">Guides</a>
+      <a href="/about.html">About</a>
+      <a href="/privacy.html">Privacy</a>
+    </nav>
+  </header>
+
+  <main class="page prose">
+    <span class="kicker">Guide</span>
+    <h1 class="page-title">Common JSON diff mistakes and how to avoid them</h1>
+    <div class="article-meta">
+      <span>Updated August 3, 2026</span>
+      <span>~5 min read</span>
+    </div>
+
+    <p class="lede">Most "wrong" diffs aren't the tool's fault — they're the input's. These are the mistakes that make a comparison lie, and how to dodge each one.</p>
+
+    <h2>1. Diffing raw, unformatted text</h2>
+    <p>Two payloads that differ only in whitespace, line breaks, or trailing commas will flood a line-based diff with changes that aren't real. A structural diff should compare <em>parsed</em> values, not text. If your tool doesn't parse first, pretty-print both sides before comparing — this tool does it automatically, so identical objects always compare clean even if one was minified and the other formatted.</p>
+
+    <h2>2. Treating key order as meaningful</h2>
+    <p><code>{"a": 1, "b": 2}</code> and <code>{"b": 2, "a": 1}</code> are the same document. JSON objects are unordered mappings, and any diff that reports "key reordered" is adding noise, not signal. The tool compares parsed objects, so key order never produces a false difference.</p>
+
+    <h2>3. Ignoring type changes</h2>
+    <p><code>"1"</code>, <code>1</code>, and <code>true</code> are three different values. A diff that coerces types — treating the string <code>"1"</code> as equal to the number <code>1</code> — will silently hide the most common breakage in API integrations. Real diffs keep types distinct: a type change is reported as an edit, exactly as it should be.</p>
+
+    <h2>4. Comparing different shapes at the same path</h2>
+    <p>An object on the left and an array on the right at the same path are not "close enough" to compare. Check the shape before you diff: if one side is wrapped in an envelope (<code>{"data": [...]}</code>) and the other isn't, unwrap both first, or every element will look shifted and renamed.</p>
+
+    <h2>5. Assuming array order is irrelevant</h2>
+    <p>Arrays are ordered; reordering elements is a real change at the index level. If you genuinely only care about the <em>set</em> of values, sort both arrays before comparing. If you leave them unsorted, expect (and correctly interpret) remove/add pairs for every moved element.</p>
+
+    <h2>6. Not normalizing dates, numbers, and punctuation</h2>
+    <p><code>"2026-08-03"</code> and <code>"2026-08-03T00:00:00Z"</code> are different strings. <code>1.0</code> and <code>1</code> are different numbers, and <code>349.00</code> vs <code>349.0</code> differ as text. Decide a canonical form for each field class before you compare, or the diff will report formatting differences you don't care about — and bury the ones you do.</p>
+
+    <h2>7. Trusting a "no differences" result on truncated input</h2>
+    <p>A paste that got cut off mid-document parses to an incomplete object, and two incomplete objects can compare as identical while the real files diverge. Confirm both payloads parse cleanly — the tool shows a parse error if one side is invalid — and check that the structures on each side are the same depth and shape you expect.</p>
+
+    <h2>The pattern behind all seven</h2>
+    <p>Every mistake above is the same underlying error: comparing <em>text</em> when you meant to compare <em>meaning</em>. Diff the parsed values — types intact, key order ignored, arrays index-aware, normalized before you press compare. That's what a structural diff does, and it's why the tool's outputs stay trustworthy even when the input is messy.</p>
+
+    <div class="ad-slot" data-ad-slot="0000000000" aria-hidden="true">
+      <span class="ad-note">Advertisement</span>
+    </div>
+
+    <p><a class="cta" href="/">Compare the parsed values, not the text <kbd>Ctrl ↵</kbd></a></p>
+    <p>Related: <a href="/guides/diff-json-api-responses.html">Diffing JSON API responses</a> · <a href="/guides/json-arrays-ordering.html">JSON arrays and ordering</a></p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p class="footer-brand">JSON Diff — a free, open-source JSON comparison tool.</p>
+      <nav class="footer-nav" aria-label="Footer">
+        <a href="/">Home</a>
+        <a href="/guides/">Guides</a>
+        <a href="/about.html">About</a>
+        <a href="/privacy.html">Privacy</a>
+      </nav>
+      <p class="footer-note">Runs entirely in your browser — your JSON never leaves your device. No sign-up, no account, no server-side processing.</p>
+    </div>
+  </footer>
+
+  <script src="/ad-slot.js"></script>
+</body>
+</html>

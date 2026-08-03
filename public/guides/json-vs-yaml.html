@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSON vs YAML: When to Compare with Each</title>
+  <meta name="description" content="JSON is for machines, YAML is for humans. What each format promises, when to reach for which, and how to convert YAML to JSON safely before you diff.">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#070b12">
+  <link rel="canonical" href="https://johnsondiff.vercel.app/guides/json-vs-yaml.html">
+
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="JSON vs YAML: When to Compare with Each">
+  <meta property="og:description" content="What each format promises, when to reach for which, and how to convert YAML to JSON safely before you diff.">
+  <meta property="og:site_name" content="JSON Diff">
+  <meta property="og:url" content="https://johnsondiff.vercel.app/guides/json-vs-yaml.html">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="JSON vs YAML: When to Compare with Each">
+  <meta name="twitter:description" content="What each format promises, and how to convert YAML to JSON safely.">
+
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "JSON vs YAML: when to compare with each",
+      "description": "What each format promises, when to reach for which, and how to convert YAML to JSON safely before you diff.",
+      "datePublished": "2026-08-03",
+      "dateModified": "2026-08-03",
+      "author": { "@type": "Person", "name": "JSON Diff" },
+      "publisher": { "@type": "Organization", "name": "JSON Diff", "url": "https://johnsondiff.vercel.app/" },
+      "mainEntityOfPage": "https://johnsondiff.vercel.app/guides/json-vs-yaml.html"
+    }
+  </script>
+
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/content.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23070b12'/%3E%3Cpath d='M19 11c-7 0-10 4-10 11v4c0 3-2 5-5 6 3 1 5 3 5 6v4c0 7 3 11 10 11' fill='none' stroke='%23edf3fb' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M45 11c7 0 10 4 10 11v4c0 3 2 5 5 6-3 1-5 3-5 6v4c0 7-3 11-10 11' fill='none' stroke='%23edf3fb' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='23' y='16' width='8' height='32' rx='3' fill='none' stroke='%234f8dcc' stroke-width='3'/%3E%3Crect x='33' y='16' width='8' height='32' rx='3' fill='none' stroke='%234f8dcc' stroke-width='3'/%3E%3Cpath d='M26 27h3M36 27h3' stroke='%234f8dcc' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M26 39h3' stroke='%23ef5f5f' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M36 39h3' stroke='%234fb56d' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+</head>
+<body>
+  <header class="header">
+    <a class="header-brand" href="/">
+      <div class="logo" aria-hidden="true">
+        <svg viewBox="0 0 52 44" role="img">
+          <path class="logo-brace" d="M15 7c-5.5 0-8 3-8 8v3c0 2.2-1.4 3.5-3.4 4 2 0.5 3.4 1.8 3.4 4v3c0 5 2.5 8 8 8"/>
+          <path class="logo-brace" d="M37 7c5.5 0 8 3 8 8v3c0 2.2 1.4 3.5 3.4 4-2 0.5-3.4 1.8-3.4 4v3c0 5-2.5 8-8 8"/>
+          <rect x="19" y="10" width="6" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+          <rect x="27" y="10" width="6" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M21 18h2M29 18h2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path class="logo-del" d="M21 27h2" stroke-width="2" stroke-linecap="round"/>
+          <path class="logo-ins" d="M29 27h2" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <p class="eyebrow">JSON diff</p>
+        <span class="brand-name">Diff with surgical highlights</span>
+      </div>
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="/">Home</a>
+      <a href="/guides/" aria-current="page">Guides</a>
+      <a href="/about.html">About</a>
+      <a href="/privacy.html">Privacy</a>
+    </nav>
+  </header>
+
+  <main class="page prose">
+    <span class="kicker">Guide</span>
+    <h1 class="page-title">JSON vs YAML: when to compare with each</h1>
+    <div class="article-meta">
+      <span>Updated August 3, 2026</span>
+      <span>~5 min read</span>
+    </div>
+
+    <p class="lede">Both formats serialize the same kinds of data, but they're aimed at different readers. JSON is for machines and APIs; YAML is for humans editing configuration. When you need to compare them, the first step is knowing what each format actually promises.</p>
+
+    <h2>What they share</h2>
+    <p>YAML 1.2 is a superset of JSON — every JSON document is also valid YAML. Both represent scalars (strings, numbers, booleans, null), sequences (arrays), and mappings (objects). If you can express a value in one, you can express it in the other. The difference is not capability; it's ergonomics and guarantees.</p>
+
+    <h2>When JSON wins</h2>
+    <ul>
+      <li><strong>Universal parsing:</strong> every language has a strict JSON parser in its standard library. There is no ambiguity about what a document means.</li>
+      <li><strong>A canonical text form:</strong> two programs that serialize the same object produce byte-similar output, so whitespace never changes meaning. That makes JSON the reliable baseline for diffing.</li>
+      <li><strong>Explicit types:</strong> <code>"1"</code>, <code>1</code>, and <code>true</code> are unambiguously a string, a number, and a boolean. No implicit coercion between them.</li>
+      <li><strong>Round-trip fidelity:</strong> what you parse is what you serialize. No comments or anchors to lose.</li>
+    </ul>
+    <p>If you're comparing API responses or machine-written data, JSON is the safe default. A diff between two JSON documents means something precise; a diff between two YAML files can be polluted by formatting noise.</p>
+
+    <h2>When YAML wins</h2>
+    <p>YAML exists for humans who read and edit configuration by hand: Kubernetes manifests, GitHub Actions, docker-compose, CI pipelines. Its wins:</p>
+    <ul>
+      <li><strong>Comments.</strong> Config without comments forces rationale into docs that drift out of date.</li>
+      <li><strong>Anchors and aliases</strong> (<code>&defaults</code> / <code>*defaults</code>) that let you define a block once and reuse it.</li>
+      <li><strong>Block scalars and multi-line strings</strong> that don't require escaping.</li>
+      <li><strong>No braces and quotes</strong> for the common case — which is also where it gets dangerous.</li>
+    </ul>
+    <p>That last point cuts both ways. The friendliness of YAML comes from inference, and inference is what makes two YAML files that <em>look</em> the same mean different things.</p>
+
+    <h2>Comparing JSON against YAML</h2>
+    <p>The tool's panels expect JSON, so the practical workflow is: convert the YAML to JSON, then diff. Do the conversion with a real YAML parser, not a regex. Watch for three traps:</p>
+    <ul>
+      <li><strong>YAML 1.1 booleans:</strong> <code>yes</code>, <code>no</code>, <code>on</code>, <code>off</code> were booleans in YAML 1.1. Older parsers will convert <code>enabled: on</code> to <code>true</code> — and a naive text diff against a JSON file will scream about a value that is semantically identical.</li>
+      <li><strong>Anchors:</strong> when converted, an anchor expands to a full copy. The JSON side will look "bigger" even though the YAML was intentionally terse.</li>
+      <li><strong>Multi-document streams:</strong> a file with several <code>---</code> separators converts to several JSON documents. Compare them one at a time.</li>
+    </ul>
+    <p>After conversion, compare the <em>parsed</em> values — the JSON diff will correctly treat <code>enabled: true</code> in YAML and <code>"enabled": true</code> in JSON as equal, because both parse to the boolean <code>true</code>.</p>
+
+    <h2>If your config uses…</h2>
+    <table>
+      <thead>
+        <tr><th>Format</th><th>Reach for JSON diff when…</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>JSON</td><td>Comparing API responses, data exports, or any machine-written payload.</td></tr>
+        <tr><td>YAML</td><td>Comparing human-edited configs — after a parser-based YAML→JSON conversion, checking semantic (not textual) differences.</td></tr>
+        <tr><td>JSONC / JSON5</td><td>Convert comments and unquoted keys to strict JSON first; a strict parser won't accept them.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="ad-slot" data-ad-slot="0000000000" aria-hidden="true">
+      <span class="ad-note">Advertisement</span>
+    </div>
+
+    <p><a class="cta" href="/">Diff your converted configs <kbd>Ctrl ↵</kbd></a></p>
+    <p>Related: <a href="/guides/json-diff-in-cicd.html">JSON diff in CI/CD</a> · <a href="/guides/json-diff-mistakes.html">Common JSON diff mistakes</a></p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p class="footer-brand">JSON Diff — a free, open-source JSON comparison tool.</p>
+      <nav class="footer-nav" aria-label="Footer">
+        <a href="/">Home</a>
+        <a href="/guides/">Guides</a>
+        <a href="/about.html">About</a>
+        <a href="/privacy.html">Privacy</a>
+      </nav>
+      <p class="footer-note">Runs entirely in your browser — your JSON never leaves your device. No sign-up, no account, no server-side processing.</p>
+    </div>
+  </footer>
+
+  <script src="/ad-slot.js"></script>
+</body>
+</html>

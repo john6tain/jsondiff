@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How to Diff JSON API Responses When Debugging a Broken Integration</title>
+  <meta name="description" content="Find the exact field an API changed — renamed key, changed type, nested move, or reordered array — by diffing the response your code expected against the one it gets now.">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#070b12">
+  <link rel="canonical" href="https://johnsondiff.vercel.app/guides/diff-json-api-responses.html">
+
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="How to Diff JSON API Responses When Debugging a Broken Integration">
+  <meta property="og:description" content="Find the exact field an API changed by diffing the response your code expected against the one it gets now.">
+  <meta property="og:site_name" content="JSON Diff">
+  <meta property="og:url" content="https://johnsondiff.vercel.app/guides/diff-json-api-responses.html">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="How to Diff JSON API Responses When Debugging a Broken Integration">
+  <meta name="twitter:description" content="Diff the response your code expected against what the API returns now.">
+
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "How to diff JSON API responses when debugging a broken integration",
+      "description": "Find the exact field an API changed by diffing the response your code expected against the one it gets now.",
+      "datePublished": "2026-08-03",
+      "dateModified": "2026-08-03",
+      "author": { "@type": "Person", "name": "JSON Diff" },
+      "publisher": { "@type": "Organization", "name": "JSON Diff", "url": "https://johnsondiff.vercel.app/" },
+      "mainEntityOfPage": "https://johnsondiff.vercel.app/guides/diff-json-api-responses.html"
+    }
+  </script>
+
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/content.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23070b12'/%3E%3Cpath d='M19 11c-7 0-10 4-10 11v4c0 3-2 5-5 6 3 1 5 3 5 6v4c0 7 3 11 10 11' fill='none' stroke='%23edf3fb' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M45 11c7 0 10 4 10 11v4c0 3 2 5 5 6-3 1-5 3-5 6v4c0 7-3 11-10 11' fill='none' stroke='%23edf3fb' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='23' y='16' width='8' height='32' rx='3' fill='none' stroke='%234f8dcc' stroke-width='3'/%3E%3Crect x='33' y='16' width='8' height='32' rx='3' fill='none' stroke='%234f8dcc' stroke-width='3'/%3E%3Cpath d='M26 27h3M36 27h3' stroke='%234f8dcc' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M26 39h3' stroke='%23ef5f5f' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M36 39h3' stroke='%234fb56d' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+</head>
+<body>
+  <header class="header">
+    <a class="header-brand" href="/">
+      <div class="logo" aria-hidden="true">
+        <svg viewBox="0 0 52 44" role="img">
+          <path class="logo-brace" d="M15 7c-5.5 0-8 3-8 8v3c0 2.2-1.4 3.5-3.4 4 2 0.5 3.4 1.8 3.4 4v3c0 5 2.5 8 8 8"/>
+          <path class="logo-brace" d="M37 7c5.5 0 8 3 8 8v3c0 2.2 1.4 3.5 3.4 4-2 0.5-3.4 1.8-3.4 4v3c0 5-2.5 8-8 8"/>
+          <rect x="19" y="10" width="6" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+          <rect x="27" y="10" width="6" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M21 18h2M29 18h2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path class="logo-del" d="M21 27h2" stroke-width="2" stroke-linecap="round"/>
+          <path class="logo-ins" d="M29 27h2" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <p class="eyebrow">JSON diff</p>
+        <span class="brand-name">Diff with surgical highlights</span>
+      </div>
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="/">Home</a>
+      <a href="/guides/" aria-current="page">Guides</a>
+      <a href="/about.html">About</a>
+      <a href="/privacy.html">Privacy</a>
+    </nav>
+  </header>
+
+  <main class="page prose">
+    <span class="kicker">Guide</span>
+    <h1 class="page-title">How to diff JSON API responses when debugging a broken integration</h1>
+    <div class="article-meta">
+      <span>Updated August 3, 2026</span>
+      <span>~5 min read</span>
+    </div>
+
+    <p class="lede">Your client worked yesterday. Today it throws. Somewhere in the response the API changed — a renamed key, a changed type, a field that moved. Here's how to find the exact field in a few minutes instead of an afternoon.</p>
+
+    <h2>Start with the two responses</h2>
+    <p>You need a reliable "before". Good sources, in order of preference:</p>
+    <ul>
+      <li>A recorded response from the last time it worked (a test fixture, a saved log line, an integration test snapshot).</li>
+      <li>The response shape from an older commit or release of your code.</li>
+      <li>The API's own documentation or OpenAPI schema, if it's kept current.</li>
+    </ul>
+    <p>Put the known-good response on the left and the current response on the right of the <a href="/">diff tool</a>. Paste them as raw JSON — the tool parses and pretty-prints both sides itself, so you don't need to reformat by hand.</p>
+
+    <h2>Read the three kinds of change</h2>
+    <p>Whatever diff tool you use, it's reporting three things:</p>
+    <ul>
+      <li><strong>Added</strong> — a key that wasn't there before. Your code may simply ignore it, or it may mask a change you actually care about.</li>
+      <li><strong>Removed</strong> — a key your code depended on. This is usually the breakage: <code>response.user.name</code> becomes <code>undefined</code>, and the next line that calls <code>.toUpperCase()</code> on it throws.</li>
+      <li><strong>Edited</strong> — the key is still there but the value (or its <em>type</em>) changed.</li>
+    </ul>
+    <p>On a large payload, switch to the change list view: it renders one row per change with the full path (like <code>user.contact.email</code>) and the old and new values, which is the fastest thing to scan when the response has dozens of fields.</p>
+
+    <h2>The changes that break clients, ranked</h2>
+    <table>
+      <thead>
+        <tr><th>Change</th><th>What it does to your code</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Field removed</td><td>Property access returns <code>undefined</code>; downstream calls throw.</td></tr>
+        <tr><td>Type changed</td><td><code>"price"</code> string becomes a number: concatenation and comparison behave differently.</td></tr>
+        <tr><td>Field renamed</td><td>Same data, new key — your code reads the old key and gets <code>undefined</code>.</td></tr>
+        <tr><td>Field moved into a nested object</td><td>The value is still there, but the path changed, so the lookup fails.</td></tr>
+        <tr><td>Array reordered or reindexed</td><td>Index-based access reads a different element than intended.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>A worked walkthrough</h2>
+    <p>Suppose the API moved <code>email</code> under a new nested <code>contact</code> object:</p>
+    <div class="two-up">
+      <figure class="code-block">
+        <div class="code-head"><span class="code-label"><span class="dot red"></span>Before</span><span class="code-tag">GET /users/7</span></div>
+        <pre><code>{
+  "id": 7,
+  "name": "Ada Lovelace",
+  "email": "ada@example.com"
+}</code></pre>
+      </figure>
+      <figure class="code-block">
+        <div class="code-head"><span class="code-label"><span class="dot green"></span>After</span><span class="code-tag">GET /users/7</span></div>
+        <pre><code>{
+  "id": 7,
+  "name": "Ada Lovelace",
+  "contact": {
+    "email": "ada@example.com"
+  }
+}</code></pre>
+      </figure>
+    </div>
+    <p>The diff shows <code>email</code> removed at the root and added again at <code>contact.email</code>. The <em>value</em> didn't change — the <em>path</em> did. That single observation tells you the fix: read <code>user.contact.email</code> instead of <code>user.email</code>, and everything else keeps working.</p>
+
+    <h2>When the diff shows nothing</h2>
+    <p>If the two payloads are byte-identical and your code still fails, the problem isn't the response body. Look at headers, status codes, pagination links, or an envelope field you stripped out before comparing. A "no differences" result is still a useful negative result: it tells you where <em>not</em> to keep digging.</p>
+
+    <div class="ad-slot" data-ad-slot="0000000000" aria-hidden="true">
+      <span class="ad-note">Advertisement</span>
+    </div>
+
+    <p><a class="cta" href="/">Compare your own API responses <kbd>Ctrl ↵</kbd></a></p>
+    <p>Related: <a href="/guides/json-diff-in-cicd.html">JSON diff in CI/CD</a> · <a href="/guides/json-arrays-ordering.html">JSON arrays and ordering</a></p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p class="footer-brand">JSON Diff — a free, open-source JSON comparison tool.</p>
+      <nav class="footer-nav" aria-label="Footer">
+        <a href="/">Home</a>
+        <a href="/guides/">Guides</a>
+        <a href="/about.html">About</a>
+        <a href="/privacy.html">Privacy</a>
+      </nav>
+      <p class="footer-note">Runs entirely in your browser — your JSON never leaves your device. No sign-up, no account, no server-side processing.</p>
+    </div>
+  </footer>
+
+  <script src="/ad-slot.js"></script>
+</body>
+</html>

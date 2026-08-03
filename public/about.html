@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About — JSON Diff | Why This Tool Exists</title>
+  <meta name="description" content="JSON Diff is a free, open-source, browser-based tool for comparing JSON documents with character-level highlights. Learn why it exists and who maintains it.">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#070b12">
+  <link rel="canonical" href="https://johnsondiff.vercel.app/about.html">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="About — JSON Diff">
+  <meta property="og:description" content="A free, open-source, browser-based JSON comparison tool. Why it exists and who maintains it.">
+  <meta property="og:site_name" content="JSON Diff">
+  <meta property="og:url" content="https://johnsondiff.vercel.app/about.html">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="About — JSON Diff">
+  <meta name="twitter:description" content="Why this browser-based JSON comparison tool exists.">
+
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/content.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23070b12'/%3E%3Cpath d='M19 11c-7 0-10 4-10 11v4c0 3-2 5-5 6 3 1 5 3 5 6v4c0 7 3 11 10 11' fill='none' stroke='%23edf3fb' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M45 11c7 0 10 4 10 11v4c0 3 2 5 5 6-3 1-5 3-5 6v4c0 7-3 11-10 11' fill='none' stroke='%23edf3fb' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='23' y='16' width='8' height='32' rx='3' fill='none' stroke='%234f8dcc' stroke-width='3'/%3E%3Crect x='33' y='16' width='8' height='32' rx='3' fill='none' stroke='%234f8dcc' stroke-width='3'/%3E%3Cpath d='M26 27h3M36 27h3' stroke='%234f8dcc' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M26 39h3' stroke='%23ef5f5f' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M36 39h3' stroke='%234fb56d' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+</head>
+<body>
+  <header class="header">
+    <a class="header-brand" href="/">
+      <div class="logo" aria-hidden="true">
+        <svg viewBox="0 0 52 44" role="img">
+          <path class="logo-brace" d="M15 7c-5.5 0-8 3-8 8v3c0 2.2-1.4 3.5-3.4 4 2 0.5 3.4 1.8 3.4 4v3c0 5 2.5 8 8 8"/>
+          <path class="logo-brace" d="M37 7c5.5 0 8 3 8 8v3c0 2.2 1.4 3.5 3.4 4-2 0.5-3.4 1.8-3.4 4v3c0 5-2.5 8-8 8"/>
+          <rect x="19" y="10" width="6" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+          <rect x="27" y="10" width="6" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M21 18h2M29 18h2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path class="logo-del" d="M21 27h2" stroke-width="2" stroke-linecap="round"/>
+          <path class="logo-ins" d="M29 27h2" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <p class="eyebrow">JSON diff</p>
+        <span class="brand-name">Diff with surgical highlights</span>
+      </div>
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="/">Home</a>
+      <a href="/guides/">Guides</a>
+      <a href="/about.html" aria-current="page">About</a>
+      <a href="/privacy.html">Privacy</a>
+    </nav>
+  </header>
+
+  <main class="page prose">
+    <span class="kicker">About</span>
+    <h1 class="page-title">About JSON Diff</h1>
+
+    <h2>What it is</h2>
+    <p>JSON Diff is a free, browser-based tool for comparing two JSON documents. It shows added, removed, and edited fields, highlights the exact characters that changed inside a modified line, and offers a structured change list for reporting. Everything runs in your browser — the split view aligns lines locally, and the change list uses the same diff engine bundled into the page, so your payloads never leave your device.</p>
+
+    <h2>Why it exists</h2>
+    <p>The tool started the way most small tools do: with a specific, recurring annoyance. While debugging API integrations, the pattern was always the same — a client that worked yesterday throws today, and somewhere in a multi-hundred-line response a single field changed. Existing diff tools were either slow, uploaded the data to a server, or produced noisy line-level diffs that buried the one real change under formatting differences.</p>
+    <p>So this tool was built to do three things the author kept wanting:</p>
+    <ul>
+      <li><strong>Run locally.</strong> JSON payloads are often sensitive — API keys, PII, internal config. Nothing should be uploaded to compare two documents.</li>
+      <li><strong>Highlight the exact change.</strong> Not just "this line is different," but the precise characters inside the line.</li>
+      <li><strong>Tell the structural story.</strong> A change list that says <code>deploy.instances: 2 → 4</code> instead of a wall of red and green.</li>
+    </ul>
+
+    <h2>Who maintains it</h2>
+    <p>JSON Diff is an open-source side project maintained by <a href="https://github.com/john6tain" rel="noopener">John6tain</a>. The source is on <a href="https://github.com/john6tain/jsondiff" rel="noopener">GitHub</a> under the GPL-3.0 license, and contributions — bug reports, feature ideas, pull requests — are welcome. It's free to use, has no accounts, and there are no plans to change that.</p>
+
+    <h2>How it works under the hood</h2>
+    <p>The frontend is plain HTML, CSS, and JavaScript — no framework, nothing to build. The split view uses a dynamic-programming alignment (longest common subsequence) to pair up lines, then a character-level pass to find the exact changed text inside each modified pair. The change list uses <a href="https://github.com/flitbit/diff" rel="noopener">deep-diff</a>, a small structural-diff library, bundled directly into the page. It's deployed on Vercel, and there's also a tiny <code>POST /api/diff</code> endpoint for scripts that want structured output (the web UI itself never calls it).</p>
+
+    <h2>The design decisions</h2>
+    <ul>
+      <li><strong>Key order never counts as a difference</strong> — JSON objects are unordered.</li>
+      <li><strong>Types are never coerced</strong> — <code>"1"</code> vs <code>1</code> is reported as an edit, not ignored.</li>
+      <li><strong>Arrays are compared by index</strong> — reordering is a real change, because it can be.</li>
+      <li><strong>No ads on the tool itself</strong> — the comparison interface stays clean; ads, when present, only appear alongside the written content on this site.</li>
+    </ul>
+    <p>If any of those decisions doesn't match how you think about JSON, the <a href="/guides/">guides</a> explain the reasoning in more depth.</p>
+
+    <div class="ad-slot" data-ad-slot="0000000000" aria-hidden="true">
+      <span class="ad-note">Advertisement</span>
+    </div>
+
+    <p><a class="cta" href="/">Back to the tool <kbd>Ctrl ↵</kbd></a></p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p class="footer-brand">JSON Diff — a free, open-source JSON comparison tool.</p>
+      <nav class="footer-nav" aria-label="Footer">
+        <a href="/">Home</a>
+        <a href="/guides/">Guides</a>
+        <a href="/about.html">About</a>
+        <a href="/privacy.html">Privacy</a>
+      </nav>
+      <p class="footer-note">Runs entirely in your browser — your JSON never leaves your device. No sign-up, no account, no server-side processing.</p>
+    </div>
+  </footer>
+
+  <script src="/ad-slot.js"></script>
+</body>
+</html>

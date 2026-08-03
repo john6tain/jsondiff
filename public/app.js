@@ -405,15 +405,10 @@ async function compare() {
         results.innerHTML = renderSplit(leftLines, rightLines, diffs);
       }
     } else {
-      // Structural table view (API)
-      const res = await fetch('/api/diff', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ json1: left, json2: right })
-      });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-      results.innerHTML = renderStats(data.diffs) + renderTable(data.diffs);
+      // Structural table view (client-side — deep-diff is vendored in the browser,
+      // so neither view sends any data to the server)
+      const diffs = window.DeepDiff.diff(obj1, obj2) || [];
+      results.innerHTML = renderStats(diffs) + renderTable(diffs);
     }
   } catch (e) {
     err.textContent = e.message;

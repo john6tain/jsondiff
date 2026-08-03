@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSON Diff in CI/CD: Catching Unintended Config Drift</title>
+  <meta name="description" content="Config files drift silently across environments and deploys. Add a JSON diff check to your pipeline and turn every accidental change into a reviewable diff before it ships.">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#070b12">
+  <link rel="canonical" href="https://johnsondiff.vercel.app/guides/json-diff-in-cicd.html">
+
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="JSON Diff in CI/CD: Catching Unintended Config Drift">
+  <meta property="og:description" content="Turn accidental config changes into reviewable diffs with a JSON diff check in your pipeline.">
+  <meta property="og:site_name" content="JSON Diff">
+  <meta property="og:url" content="https://johnsondiff.vercel.app/guides/json-diff-in-cicd.html">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="JSON Diff in CI/CD: Catching Unintended Config Drift">
+  <meta name="twitter:description" content="Catch config drift before it ships.">
+
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "JSON diff in CI/CD: catching unintended config drift",
+      "description": "Config files drift silently. A JSON diff check in your pipeline turns every accidental change into a reviewable diff before it ships.",
+      "datePublished": "2026-08-03",
+      "dateModified": "2026-08-03",
+      "author": { "@type": "Person", "name": "JSON Diff" },
+      "publisher": { "@type": "Organization", "name": "JSON Diff", "url": "https://johnsondiff.vercel.app/" },
+      "mainEntityOfPage": "https://johnsondiff.vercel.app/guides/json-diff-in-cicd.html"
+    }
+  </script>
+
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/content.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23070b12'/%3E%3Cpath d='M19 11c-7 0-10 4-10 11v4c0 3-2 5-5 6 3 1 5 3 5 6v4c0 7 3 11 10 11' fill='none' stroke='%23edf3fb' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M45 11c7 0 10 4 10 11v4c0 3 2 5 5 6-3 1-5 3-5 6v4c0 7-3 11-10 11' fill='none' stroke='%23edf3fb' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='23' y='16' width='8' height='32' rx='3' fill='none' stroke='%234f8dcc' stroke-width='3'/%3E%3Crect x='33' y='16' width='8' height='32' rx='3' fill='none' stroke='%234f8dcc' stroke-width='3'/%3E%3Cpath d='M26 27h3M36 27h3' stroke='%234f8dcc' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M26 39h3' stroke='%23ef5f5f' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M36 39h3' stroke='%234fb56d' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+</head>
+<body>
+  <header class="header">
+    <a class="header-brand" href="/">
+      <div class="logo" aria-hidden="true">
+        <svg viewBox="0 0 52 44" role="img">
+          <path class="logo-brace" d="M15 7c-5.5 0-8 3-8 8v3c0 2.2-1.4 3.5-3.4 4 2 0.5 3.4 1.8 3.4 4v3c0 5 2.5 8 8 8"/>
+          <path class="logo-brace" d="M37 7c5.5 0 8 3 8 8v3c0 2.2 1.4 3.5 3.4 4-2 0.5-3.4 1.8-3.4 4v3c0 5-2.5 8-8 8"/>
+          <rect x="19" y="10" width="6" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+          <rect x="27" y="10" width="6" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M21 18h2M29 18h2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path class="logo-del" d="M21 27h2" stroke-width="2" stroke-linecap="round"/>
+          <path class="logo-ins" d="M29 27h2" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <p class="eyebrow">JSON diff</p>
+        <span class="brand-name">Diff with surgical highlights</span>
+      </div>
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="/">Home</a>
+      <a href="/guides/" aria-current="page">Guides</a>
+      <a href="/about.html">About</a>
+      <a href="/privacy.html">Privacy</a>
+    </nav>
+  </header>
+
+  <main class="page prose">
+    <span class="kicker">Guide</span>
+    <h1 class="page-title">JSON diff in CI/CD: catching unintended config drift</h1>
+    <div class="article-meta">
+      <span>Updated August 3, 2026</span>
+      <span>~4 min read</span>
+    </div>
+
+    <p class="lede">Config files drift silently. Someone bumps a timeout on staging, a merge brings in the wrong value, an auto-formatter rewrites an env file. A diff step in your pipeline turns every accidental change into a reviewable, machine-checkable diff before it reaches production.</p>
+
+    <h2>What config drift looks like</h2>
+    <p>Config drift is the slow divergence of the same file across environments or over time. It's invisible for two reasons: nobody re-reads a config file top to bottom on every deploy, and a single changed value often doesn't break anything by itself. It just shifts behavior — a longer timeout here, a lower retry count there — until someone notices a stack has been configured differently from the rest of the fleet for three months.</p>
+    <p>The same comparison logic you use to debug an API applies here: put the <em>known-good</em> config on one side and the <em>candidate</em> on the other, and let the diff list every added, removed, and edited key with its full path.</p>
+
+    <h2>Where to add a diff check</h2>
+    <p>Three placements cover most drift:</p>
+    <ul>
+      <li><strong>Pre-deploy:</strong> compare the config about to ship against the config currently in production. The diff <em>is</em> your change list — reject the deploy if it contains keys nobody intended to touch.</li>
+      <li><strong>Cross-environment:</strong> a scheduled job compares staging vs production. Staging and prod should match except for a short, known allowlist of keys (credentials, feature flags, URLs).</li>
+      <li><strong>Generated-config:</strong> if you render config from templates, compare the rendered output against the committed baseline so a template change can't silently alter every environment at once.</li>
+    </ul>
+
+    <h2>A minimal pipeline step</h2>
+    <p>Conceptually the check is a few lines: fetch the baseline, load the candidate, diff, and fail on unexpected differences.</p>
+    <div class="code-block">
+      <div class="code-head"><span class="code-label">Pipeline step</span><span class="code-tag">bash</span></div>
+      <pre><code># Fetch the last-known-good config from the running stack
+baseline=$(curl -s "$PROD_URL/config.json")
+
+# Diff it against the config about to be deployed
+diffs=$(curl -s -X POST https://johnsondiff.vercel.app/api/diff \
+  -H "Content-Type: application/json" \
+  -d "{\"json1\": $(jq -R -s . <<<"$baseline"), \
+        \"json2\": $(jq -R -s . <<<"$(cat deploy/config.json)")}")
+
+if [ "$(jq '.diffs | length' <<<"$diffs")" -gt 0 ]; then
+  echo "Config drift detected:"
+  jq '.diffs[]' <<<"$diffs"
+  exit 1
+fi</code></pre>
+    </div>
+    <p>This site exposes the same structural diff as a small <code>POST /api/diff</code> endpoint, returning one object per change with the path and old/new values — convenient for a script that wants structured output rather than highlights. The response shape is the classic add/edit/remove format: a removed key is <code>{ "kind": "D", "path": ["maxRetries"] }</code>, an edit is <code>{ "kind": "E", "path": ["timeout"], "lhs": 30, "rhs": 45 }</code>.</p>
+
+    <h2>Allowlist the differences you expect</h2>
+    <p>Not every difference is a failure. Deploy metadata like <code>buildTimestamp</code> or <code>version</code> changes on every release and shouldn't fail the check. Filter the diff by path before deciding: fail only when a change appears <em>outside</em> the allowlist. That's the difference between a signal and an alarm that gets muted because it fires too often.</p>
+
+    <h2>Interpreting a failed diff</h2>
+    <p>When the check fails, you now have evidence, not a hunch. Read the diff the same way you'd read a code review: is the removed key still referenced somewhere? Is the edited value inside the range the application expects? If the change was intentional, update the baseline and allowlist; if not, the diff just prevented a silent behavior change from shipping.</p>
+
+    <div class="ad-slot" data-ad-slot="0000000000" aria-hidden="true">
+      <span class="ad-note">Advertisement</span>
+    </div>
+
+    <p><a class="cta" href="/">Diff your two config files <kbd>Ctrl ↵</kbd></a></p>
+    <p>Related: <a href="/guides/diff-json-api-responses.html">Diffing JSON API responses</a> · <a href="/guides/json-diff-mistakes.html">Common JSON diff mistakes</a></p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p class="footer-brand">JSON Diff — a free, open-source JSON comparison tool.</p>
+      <nav class="footer-nav" aria-label="Footer">
+        <a href="/">Home</a>
+        <a href="/guides/">Guides</a>
+        <a href="/about.html">About</a>
+        <a href="/privacy.html">Privacy</a>
+      </nav>
+      <p class="footer-note">Runs entirely in your browser — your JSON never leaves your device. No sign-up, no account, no server-side processing.</p>
+    </div>
+  </footer>
+
+  <script src="/ad-slot.js"></script>
+</body>
+</html>

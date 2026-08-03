@@ -3,6 +3,9 @@
     { "source": "/api/(.*)", "destination": "/server.js" },
     { "source": "/(.*)", "destination": "/public/$1" }
   ],
+  "redirects": [
+    { "source": "/guides", "destination": "/guides/", "permanent": true }
+  ],
   "headers": [
     {
       "source": "/(.*)",

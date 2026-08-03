@@ -15,15 +15,15 @@ A fast, client-side JSON diff tool with surgical character-level highlights, spl
 - **Format / Clear / Copy** — quick actions on each input panel
 - **Keyboard shortcut** — `Ctrl + Enter` to compare
 - **URL params** — pass `?left=...&right=...` to auto-load payloads
-- **Fully client-side** — no data is sent to any server (split view runs entirely in the browser)
+- **Fully client-side** — both views run entirely in the browser; no data is sent to any server (deep-diff is vendored into the page)
 
 ## Tech Stack
 
 | Layer | Tech |
 |-------|------|
 | Frontend | Vanilla HTML, CSS, JS |
-| Backend | Express.js |
-| Structural diff | [deep-diff](https://github.com/flitbit/diff) |
+| Backend | Express.js (static hosting + optional diff API) |
+| Structural diff | [deep-diff](https://github.com/flitbit/diff) — vendored into `public/vendor/`, runs client-side |
 | Fonts | Inter + JetBrains Mono |
 | Deployment | Vercel |
 
@@ -41,13 +41,26 @@ Open [http://localhost:3000](http://localhost:3000).
 ```
 jsondiff-web/
 ├── public/
-│   ├── index.html      # Main page with SEO meta tags
-│   ├── style.css       # Dark theme styles
-│   ├── app.js          # Client-side diff engine + UI
-│   ├── robots.txt      # Crawler directives
-│   ├── sitemap.xml     # Sitemap for search engines
-│   └── google*.html    # Google Search Console verification
-├── server.js           # Express backend (structural diff API)
+│   ├── index.html          # Homepage: tool + content (examples, edge cases, FAQ)
+│   ├── style.css           # Dark theme (design tokens + tool styles)
+│   ├── content.css         # Site-wide layout: nav, articles, code blocks, ad slots
+│   ├── app.js              # Client-side diff engine + UI
+│   ├── ad-slot.js          # Dormant AdSense loader (config-gated)
+│   ├── vendor/
+│   │   └── deep-diff.min.js  # Structural diff library, bundled client-side
+│   ├── guides/
+│   │   ├── index.html          # Guides hub
+│   │   ├── diff-json-api-responses.html
+│   │   ├── json-diff-in-cicd.html
+│   │   ├── json-vs-yaml.html
+│   │   ├── json-diff-mistakes.html
+│   │   └── json-arrays-ordering.html
+│   ├── about.html          # What / why / who
+│   ├── privacy.html        # Client-side privacy statement
+│   ├── robots.txt          # Crawler directives
+│   ├── sitemap.xml         # Sitemap listing all indexable pages
+│   └── google*.html        # Google Search Console verification
+├── server.js           # Express server (static hosting + optional /api/diff)
 ├── package.json
 ├── vercel.json         # Vercel routing config
 ├── .gitignore
@@ -60,15 +73,36 @@ jsondiff-web/
 2. **Line diff (LCS)** — a dynamic-programming LCS algorithm aligns lines by content, using normalized keys (stripped whitespace and trailing commas) for better matching
 3. **Similarity merge** — nearby delete/insert pairs are scored for similarity; pairs above 0.72 are merged into "modified" lines so they appear side-by-side instead of staggered
 4. **Character diff (LCS)** — each modified pair runs a character-level LCS to find exactly which characters changed, producing inline red/green highlights
-5. **Render** — the split view uses a two-column table with synchronized line numbers; the change list view sends both payloads to the `/api/diff` endpoint for structural comparison via `deep-diff`
+5. **Render** — the split view uses a two-column table with synchronized line numbers; the change list view runs the same structural comparison in the browser using the vendored `deep-diff` bundle
 
 ## SEO
 
 - `robots.txt` — crawler directives with sitemap reference
-- `sitemap.xml` — XML sitemap for search engines
-- Meta tags — title, description, keywords, Open Graph, Twitter Card
-- Structured data — JSON-LD WebApplication schema
+- `sitemap.xml` — lists the homepage, guides hub, all five articles, about, and privacy
+- Meta tags — unique title, description, canonical, Open Graph, and Twitter Card per page
+- Structured data — JSON-LD `WebApplication` + `FAQPage` on the homepage; `Article` on each guide
 - Google Search Console — verified via HTML file
+- Internal linking — every page links the tool, guides, about, and privacy from a shared nav and footer
+
+## Content pages
+
+The site is a content site around the tool. Static pages live in `public/` and are served as-is:
+
+- Homepage — the tool stays at the top; below it are four worked examples, an edge-cases explainer, and an FAQ
+- `/guides/` — hub page linking five articles (API-response debugging, CI/CD config drift, JSON vs YAML, common mistakes, arrays & ordering)
+- `/about.html` — what the tool is and why it exists
+- `/privacy.html` — full statement of what is/isn't collected
+
+## Advertising (Google AdSense)
+
+Ad slots are dormant by default and only ever render on content pages (the homepage content section, guides, about) — never on or around the tool inputs.
+
+To enable ads:
+
+1. Set `window.ADSENSE_CLIENT` to your publisher ID in a `<script>` tag before `ad-slot.js` loads on the pages you want ads on (e.g. in the `<head>` of `index.html`, `guides/*.html`, and `about.html`).
+2. Replace the placeholder `data-ad-slot="0000000000"` values on each `.ad-slot` element with real ad-unit slot IDs from your AdSense account.
+
+Until both are set, `ad-slot.js` is a complete no-op — no network calls, no ad markup, no empty boxes. See the comments at the top of `public/ad-slot.js`.
 
 ## Versioning
 
@@ -112,7 +146,7 @@ Response:
 }
 ```
 
-The structural diff API is used by the Change List view. The Split View runs entirely client-side.
+The web UI no longer calls this endpoint — both views run entirely client-side, so the privacy claim ("no data sent to any server") is true for the site. The endpoint remains available for scripts and CI pipelines that want structured diff output (see the CI/CD guide).
 
 ## License
 
