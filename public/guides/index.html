@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JSON Diff Guides — Practical Guide to Comparing JSON</title>
-  <meta name="description" content="Practical guides on diffing JSON: debugging API integrations, catching config drift in CI/CD, JSON vs YAML, arrays and ordering, and the common mistakes that make a diff lie.">
+  <meta name="description" content="Practical, original guides for comparing JSON in API debugging, CI/CD, webhooks, OpenAPI schemas, lockfiles, nested objects, arrays, YAML conversion, and review workflows.">
   <meta name="robots" content="index, follow">
   <meta name="theme-color" content="#070b12">
   <link rel="canonical" href="https://johnsondiff.vercel.app/guides/">
@@ -24,7 +24,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23070b12'/%3E%3Cpath d='M19 11c-7 0-10 4-10 11v4c0 3-2 5-5 6 3 1 5 3 5 6v4c0 7 3 11 10 11' fill='none' stroke='%23edf3fb' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M45 11c7 0 10 4 10 11v4c0 3 2 5 5 6-3 1-5 3-5 6v4c0 7-3 11-10 11' fill='none' stroke='%23edf3fb' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='23' y='16' width='8' height='32' rx='3' fill='none' stroke='%234f8dcc' stroke-width='3'/%3E%3Crect x='33' y='16' width='8' height='32' rx='3' fill='none' stroke='%234f8dcc' stroke-width='3'/%3E%3Cpath d='M26 27h3M36 27h3' stroke='%234f8dcc' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M26 39h3' stroke='%23ef5f5f' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M36 39h3' stroke='%234fb56d' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
 </head>
 <body>
   <header class="header">
@@ -50,45 +49,49 @@
       <a href="/guides/" aria-current="page">Guides</a>
       <a href="/about.html">About</a>
       <a href="/privacy.html">Privacy</a>
+      <a href="/contact.html">Contact</a>
     </nav>
   </header>
 
   <main class="page prose">
     <span class="kicker">Guides</span>
     <h1 class="page-title">JSON Diff guides</h1>
-    <p class="lede">Step-by-step write-ups for real situations where a JSON diff saves the day — plus the underlying concepts that make a diff trustworthy in the first place.</p>
+    <p class="lede">JSON diffs are most useful when they answer a real question: which API field changed, why a deployment drifted, whether an OpenAPI contract is breaking, or why a webhook handler suddenly stopped recognizing an event. This guide library explains those workflows with concrete examples.</p>
 
+    <h2>How to use these guides</h2>
+    <p>Start with the situation that matches your problem. If you are debugging a client integration, compare a known-good response against the current one. If you are reviewing a deployment, compare the committed or running baseline against the candidate config. If a diff looks noisy, read the mistakes and array-ordering guides before assuming the tool is wrong.</p>
+    <p>The common pattern is always the same: compare parsed values instead of raw text, look at full paths instead of isolated line numbers, and decide whether each change is a real behavior change or expected noise. The JSON Diff tool at the top of the site is built around that pattern: split view for reading, and change list view for scanning structural paths.</p>
+
+    <h2>Core debugging workflows</h2>
     <div class="guide-grid">
-      <a class="guide-card" href="/guides/diff-json-api-responses.html">
-        <h3>How to diff JSON API responses when debugging a broken integration</h3>
-        <p>Your client worked yesterday and throws today. Find the exact field the API changed — type, name, nesting, or order — in minutes instead of an afternoon.</p>
-        <span class="guide-meta">Read →</span>
-      </a>
-      <a class="guide-card" href="/guides/json-diff-in-cicd.html">
-        <h3>JSON diff in CI/CD: catching unintended config drift</h3>
-        <p>Config files drift silently across environments and deploys. A diff check in your pipeline turns every accidental change into a reviewable diff.</p>
-        <span class="guide-meta">Read →</span>
-      </a>
-      <a class="guide-card" href="/guides/json-vs-yaml.html">
-        <h3>JSON vs YAML: when to compare with each</h3>
-        <p>JSON is for machines, YAML is for humans. Know what each format promises — and how to convert YAML to JSON safely before you diff.</p>
-        <span class="guide-meta">Read →</span>
-      </a>
-      <a class="guide-card" href="/guides/json-diff-mistakes.html">
-        <h3>Common JSON diff mistakes and how to avoid them</h3>
-        <p>Most "wrong" diffs aren't the tool's fault — they're the input's. Seven mistakes that make a comparison lie, and how to dodge each one.</p>
-        <span class="guide-meta">Read →</span>
-      </a>
-      <a class="guide-card" href="/guides/json-arrays-ordering.html">
-        <h3>JSON arrays and ordering: what a diff can and can't tell you</h3>
-        <p>Arrays are ordered, objects are not. Why a reordered array shows up as removes and adds — and when that's a real change.</p>
-        <span class="guide-meta">Read →</span>
-      </a>
+      <a class="guide-card" href="/guides/diff-json-api-responses.html"><h3>How to diff JSON API responses when debugging a broken integration</h3><p>Find the exact field the API changed — type, name, nesting, or order — in minutes instead of an afternoon.</p><span class="guide-meta">Read →</span></a>
+      <a class="guide-card" href="/guides/json-diff-for-webhooks.html"><h3>JSON diff for webhooks: debugging payload changes between events</h3><p>Compare old and new webhook events to find renamed event types, missing IDs, type changes, and shape changes.</p><span class="guide-meta">Read →</span></a>
+      <a class="guide-card" href="/guides/diff-nested-json-objects.html"><h3>How to diff deeply nested JSON objects</h3><p>Read nested paths, unwrap envelopes, and compare only the subtree that contains the real question.</p><span class="guide-meta">Read →</span></a>
     </div>
 
-    <div class="ad-slot" data-ad-slot="0000000000" aria-hidden="true">
-      <span class="ad-note">Advertisement</span>
+    <h2>Release and review workflows</h2>
+    <div class="guide-grid">
+      <a class="guide-card" href="/guides/json-diff-in-cicd.html"><h3>JSON diff in CI/CD: catching unintended config drift</h3><p>A diff check in your pipeline turns accidental configuration changes into reviewable evidence before deploy.</p><span class="guide-meta">Read →</span></a>
+      <a class="guide-card" href="/guides/diff-openapi-json-schemas.html"><h3>How to diff OpenAPI JSON schemas for breaking API changes</h3><p>Compare API contracts to spot removed endpoints, required fields, changed types, and authentication changes.</p><span class="guide-meta">Read →</span></a>
+      <a class="guide-card" href="/guides/compare-package-lock-json.html"><h3>How to compare package-lock.json changes without getting lost</h3><p>Read lockfile diffs by package, version, resolved source, integrity hash, and transitive dependency path.</p><span class="guide-meta">Read →</span></a>
     </div>
+
+    <h2>Concepts that make a diff trustworthy</h2>
+    <div class="guide-grid">
+      <a class="guide-card" href="/guides/json-vs-yaml.html"><h3>JSON vs YAML: when to compare with each</h3><p>Know what each format promises and how to convert YAML to JSON safely before comparing semantic values.</p><span class="guide-meta">Read →</span></a>
+      <a class="guide-card" href="/guides/json-diff-mistakes.html"><h3>Common JSON diff mistakes and how to avoid them</h3><p>Seven mistakes that make a comparison lie, from raw text diffs to type coercion and truncated input.</p><span class="guide-meta">Read →</span></a>
+      <a class="guide-card" href="/guides/json-arrays-ordering.html"><h3>JSON arrays and ordering: what a diff can and can't tell you</h3><p>Why reordered arrays show up as removes and adds, and when that is a real change you should review.</p><span class="guide-meta">Read →</span></a>
+      <a class="guide-card" href="/guides/json-patch-vs-json-diff.html"><h3>JSON Patch vs JSON Diff: which output do you need?</h3><p>Decide whether you need a human-readable comparison, a machine-applicable patch, or both.</p><span class="guide-meta">Read →</span></a>
+    </div>
+
+    <h2>Before you compare</h2>
+    <ol>
+      <li>Put the known-good or older document on the left and the candidate or newer document on the right.</li>
+      <li>Remove or normalize generated fields such as timestamps, request IDs, and pagination cursors if they are not part of the question.</li>
+      <li>Use split view when you want to read context, and change list view when you want to scan full paths.</li>
+      <li>For arrays, decide whether order matters before interpreting remove/add pairs.</li>
+      <li>For YAML, JSONC, or JSON5, convert to strict JSON with a real parser before using this tool.</li>
+    </ol>
 
     <p>Ready to compare? <a href="/">Open the JSON diff tool</a> — paste two payloads and see exactly what changed.</p>
   </main>
@@ -101,11 +104,11 @@
         <a href="/guides/">Guides</a>
         <a href="/about.html">About</a>
         <a href="/privacy.html">Privacy</a>
+        <a href="/contact.html">Contact</a>
       </nav>
       <p class="footer-note">Runs entirely in your browser — your JSON never leaves your device. No sign-up, no account, no server-side processing.</p>
     </div>
   </footer>
 
-  <script src="/ad-slot.js"></script>
 </body>
 </html>

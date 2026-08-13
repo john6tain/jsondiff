@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How to Compare package-lock.json Changes Without Getting Lost</title>
+  <meta name="description" content="Large lockfile diffs are noisy. Learn how to compare package-lock.json changes by package name, version, integrity, and dependency path.">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#070b12">
+  <link rel="canonical" href="https://johnsondiff.vercel.app/guides/compare-package-lock-json.html">
+
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="How to Compare package-lock.json Changes Without Getting Lost">
+  <meta property="og:description" content="Large lockfile diffs are noisy. Learn how to compare package-lock.json changes by package name, version, integrity, and dependency path.">
+  <meta property="og:site_name" content="JSON Diff">
+  <meta property="og:url" content="https://johnsondiff.vercel.app/guides/compare-package-lock-json.html">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="How to Compare package-lock.json Changes Without Getting Lost">
+  <meta name="twitter:description" content="Large lockfile diffs are noisy. Learn how to compare package-lock.json changes by package name, version, integrity, and dependency path.">
+
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "How to Compare package-lock.json Changes Without Getting Lost",
+      "description": "Large lockfile diffs are noisy. Learn how to compare package-lock.json changes by package name, version, integrity, and dependency path.",
+      "datePublished": "2026-08-13",
+      "dateModified": "2026-08-13",
+      "author": { "@type": "Person", "name": "JSON Diff" },
+      "publisher": { "@type": "Organization", "name": "JSON Diff", "url": "https://johnsondiff.vercel.app/" },
+      "mainEntityOfPage": "https://johnsondiff.vercel.app/guides/compare-package-lock-json.html"
+    }
+  </script>
+
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/content.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="header">
+    <a class="header-brand" href="/">
+      <div class="logo" aria-hidden="true">
+        <svg viewBox="0 0 52 44" role="img">
+          <path class="logo-brace" d="M15 7c-5.5 0-8 3-8 8v3c0 2.2-1.4 3.5-3.4 4 2 0.5 3.4 1.8 3.4 4v3c0 5 2.5 8 8 8"/>
+          <path class="logo-brace" d="M37 7c5.5 0 8 3 8 8v3c0 2.2 1.4 3.5 3.4 4-2 0.5-3.4 1.8-3.4 4v3c0 5-2.5 8-8 8"/>
+          <rect x="19" y="10" width="6" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+          <rect x="27" y="10" width="6" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M21 18h2M29 18h2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path class="logo-del" d="M21 27h2" stroke-width="2" stroke-linecap="round"/>
+          <path class="logo-ins" d="M29 27h2" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <p class="eyebrow">JSON diff</p>
+        <span class="brand-name">Diff with surgical highlights</span>
+      </div>
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="/">Home</a>
+      <a href="/guides/" aria-current="page">Guides</a>
+      <a href="/about.html">About</a>
+      <a href="/privacy.html">Privacy</a>
+      <a href="/contact.html">Contact</a>
+    </nav>
+  </header>
+
+  <main class="page prose">
+    <span class="kicker">Guide</span>
+    <h1 class="page-title">How to compare package-lock.json changes without getting lost</h1>
+    <div class="article-meta"><span>Updated August 13, 2026</span><span>~7 min read</span></div>
+    <p class="lede">A lockfile diff can be hundreds or thousands of lines long. Most of those lines are mechanical. The useful question is smaller: which packages changed, why did they change, and did the resolved source move somewhere unexpected?</p>
+    <h2>Start by formatting both files</h2>
+    <p>Lockfiles are JSON, so the first rule is the same as any JSON comparison: parse and pretty-print before reading the diff. That removes whitespace noise and makes nested package paths readable. Put the previous lockfile on the left and the candidate lockfile on the right.</p>
+    <h2>Fields that matter most</h2>
+    <ul><li><strong><code>version</code>:</strong> the package version changed. This is the headline change reviewers usually care about.</li><li><strong><code>resolved</code>:</strong> the tarball URL changed. A version bump can be expected; an unexpected registry host deserves attention.</li><li><strong><code>integrity</code>:</strong> the content hash changed. It normally changes with the tarball, but a hash-only change should be investigated.</li><li><strong><code>dependencies</code>:</strong> a package now pulls in a new transitive dependency or drops one.</li><li><strong><code>dev</code> and <code>optional</code>:</strong> package classification changed, which can affect production installs.</li></ul>
+    <h2>Read by package path, not by line count</h2>
+    <p>The change list view is useful because it shows full paths. A change at <code>packages.node_modules.react.version</code> tells a clearer story than a line number in a 12,000-line file. Group the paths mentally by package, then ask whether each group matches the package manager command you ran.</p>
+    <h2>Example: a safe-looking bump</h2>
+    <div class="two-up"><figure class="code-block"><div class="code-head"><span class="code-label"><span class="dot red"></span>Before</span><span class="code-tag">package-lock.json</span></div><pre><code>{
+  "packages": {
+    "node_modules/example": {
+      "version": "1.2.0",
+      "resolved": "https://registry.npmjs.org/example/-/example-1.2.0.tgz"
+    }
+  }
+}</code></pre></figure><figure class="code-block"><div class="code-head"><span class="code-label"><span class="dot green"></span>After</span><span class="code-tag">package-lock.json</span></div><pre><code>{
+  "packages": {
+    "node_modules/example": {
+      "version": "1.2.1",
+      "resolved": "https://registry.npmjs.org/example/-/example-1.2.1.tgz"
+    }
+  }
+}</code></pre></figure></div>
+    <p>This is a normal patch bump: the version and tarball moved together under the same registry host. If the version stayed the same but the tarball URL or integrity hash changed, the review should slow down.</p>
+    <h2>When to split the comparison</h2>
+    <p>For very large lockfiles, comparing the entire file is still possible, but reading the result may not be productive. Copy the subsection for one package or dependency family and compare that slice. You are not trying to admire the whole diff; you are trying to answer whether a specific dependency change is expected.</p>
+    <h2>Practical checklist</h2>
+    <ol><li>Confirm the lockfile changed because of an intentional package-manager command.</li><li>Scan version changes first.</li><li>Check registry hosts in <code>resolved</code>.</li><li>Look for new transitive dependencies.</li><li>Pay attention to hash-only or source-only changes.</li><li>If the diff is too large, compare the relevant subtree.</li></ol>
+    <p><a class="cta" href="/">Compare two lockfile sections <kbd>Ctrl ↵</kbd></a></p>
+    <p>Related: <a href="/guides/json-diff-in-cicd.html">JSON diff in CI/CD</a> · <a href="/guides/json-diff-mistakes.html">Common JSON diff mistakes</a></p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p class="footer-brand">JSON Diff — a free, open-source JSON comparison tool.</p>
+      <nav class="footer-nav" aria-label="Footer">
+        <a href="/">Home</a>
+        <a href="/guides/">Guides</a>
+        <a href="/about.html">About</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/contact.html">Contact</a>
+      </nav>
+      <p class="footer-note">Runs entirely in your browser — your JSON never leaves your device. No sign-up, no account, no server-side processing.</p>
+    </div>
+  </footer>
+
+</body>
+</html>

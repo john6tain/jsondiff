@@ -43,9 +43,8 @@ jsondiff-web/
 ├── public/
 │   ├── index.html          # Homepage: tool + content (examples, edge cases, FAQ)
 │   ├── style.css           # Dark theme (design tokens + tool styles)
-│   ├── content.css         # Site-wide layout: nav, articles, code blocks, ad slots
+│   ├── content.css         # Site-wide layout: nav, articles, code blocks
 │   ├── app.js              # Client-side diff engine + UI
-│   ├── ad-slot.js          # Dormant AdSense loader (config-gated)
 │   ├── vendor/
 │   │   └── deep-diff.min.js  # Structural diff library, bundled client-side
 │   ├── guides/
@@ -54,9 +53,15 @@ jsondiff-web/
 │   │   ├── json-diff-in-cicd.html
 │   │   ├── json-vs-yaml.html
 │   │   ├── json-diff-mistakes.html
-│   │   └── json-arrays-ordering.html
+│   │   ├── json-arrays-ordering.html
+│   │   ├── json-patch-vs-json-diff.html
+│   │   ├── compare-package-lock-json.html
+│   │   ├── diff-openapi-json-schemas.html
+│   │   ├── diff-nested-json-objects.html
+│   │   └── json-diff-for-webhooks.html
 │   ├── about.html          # What / why / who
 │   ├── privacy.html        # Client-side privacy statement
+│   ├── contact.html        # Support and project contact details
 │   ├── robots.txt          # Crawler directives
 │   ├── sitemap.xml         # Sitemap listing all indexable pages
 │   └── google*.html        # Google Search Console verification
@@ -78,31 +83,27 @@ jsondiff-web/
 ## SEO
 
 - `robots.txt` — crawler directives with sitemap reference
-- `sitemap.xml` — lists the homepage, guides hub, all five articles, about, and privacy
+- `sitemap.xml` — lists the homepage, guides hub, all articles, about, privacy, and contact
 - Meta tags — unique title, description, canonical, Open Graph, and Twitter Card per page
 - Structured data — JSON-LD `WebApplication` + `FAQPage` on the homepage; `Article` on each guide
 - Google Search Console — verified via HTML file
-- Internal linking — every page links the tool, guides, about, and privacy from a shared nav and footer
+- Internal linking — every page links the tool, guides, about, privacy, and contact from a shared nav and footer
 
 ## Content pages
 
 The site is a content site around the tool. Static pages live in `public/` and are served as-is:
 
 - Homepage — the tool stays at the top; below it are four worked examples, an edge-cases explainer, and an FAQ
-- `/guides/` — hub page linking five articles (API-response debugging, CI/CD config drift, JSON vs YAML, common mistakes, arrays & ordering)
+- `/guides/` — hub page linking articles on API-response debugging, CI/CD config drift, JSON vs YAML, common mistakes, arrays and ordering, webhooks, OpenAPI schemas, lockfiles, nested objects, and JSON Patch vs JSON Diff
 - `/about.html` — what the tool is and why it exists
 - `/privacy.html` — full statement of what is/isn't collected
+- `/contact.html` — support, maintainer, and project contact details
 
 ## Advertising (Google AdSense)
 
-Ad slots are dormant by default and only ever render on content pages (the homepage content section, guides, about) — never on or around the tool inputs.
+Advertising is currently disabled. The public pages do not include ad placeholders, placeholder slot IDs, or an AdSense loader script.
 
-To enable ads:
-
-1. Set `window.ADSENSE_CLIENT` to your publisher ID in a `<script>` tag before `ad-slot.js` loads on the pages you want ads on (e.g. in the `<head>` of `index.html`, `guides/*.html`, and `about.html`).
-2. Replace the placeholder `data-ad-slot="0000000000"` values on each `.ad-slot` element with real ad-unit slot IDs from your AdSense account.
-
-Until both are set, `ad-slot.js` is a complete no-op — no network calls, no ad markup, no empty boxes. See the comments at the top of `public/ad-slot.js`.
+Before enabling ads later, update the privacy policy, add real AdSense units only on content sections, and keep ads away from the JSON input panels so the tool remains usable and privacy expectations stay clear.
 
 ## Versioning
 

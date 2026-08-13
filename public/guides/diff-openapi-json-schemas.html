@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How to Diff OpenAPI JSON Schemas for Breaking API Changes</title>
+  <meta name="description" content="Compare OpenAPI JSON schemas to find removed endpoints, changed response fields, renamed parameters, and other breaking API changes.">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#070b12">
+  <link rel="canonical" href="https://johnsondiff.vercel.app/guides/diff-openapi-json-schemas.html">
+
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="How to Diff OpenAPI JSON Schemas for Breaking API Changes">
+  <meta property="og:description" content="Compare OpenAPI JSON schemas to find removed endpoints, changed response fields, renamed parameters, and other breaking API changes.">
+  <meta property="og:site_name" content="JSON Diff">
+  <meta property="og:url" content="https://johnsondiff.vercel.app/guides/diff-openapi-json-schemas.html">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="How to Diff OpenAPI JSON Schemas for Breaking API Changes">
+  <meta name="twitter:description" content="Compare OpenAPI JSON schemas to find removed endpoints, changed response fields, renamed parameters, and other breaking API changes.">
+
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "How to Diff OpenAPI JSON Schemas for Breaking API Changes",
+      "description": "Compare OpenAPI JSON schemas to find removed endpoints, changed response fields, renamed parameters, and other breaking API changes.",
+      "datePublished": "2026-08-13",
+      "dateModified": "2026-08-13",
+      "author": { "@type": "Person", "name": "JSON Diff" },
+      "publisher": { "@type": "Organization", "name": "JSON Diff", "url": "https://johnsondiff.vercel.app/" },
+      "mainEntityOfPage": "https://johnsondiff.vercel.app/guides/diff-openapi-json-schemas.html"
+    }
+  </script>
+
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/content.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="header">
+    <a class="header-brand" href="/">
+      <div class="logo" aria-hidden="true">
+        <svg viewBox="0 0 52 44" role="img">
+          <path class="logo-brace" d="M15 7c-5.5 0-8 3-8 8v3c0 2.2-1.4 3.5-3.4 4 2 0.5 3.4 1.8 3.4 4v3c0 5 2.5 8 8 8"/>
+          <path class="logo-brace" d="M37 7c5.5 0 8 3 8 8v3c0 2.2 1.4 3.5 3.4 4-2 0.5-3.4 1.8-3.4 4v3c0 5-2.5 8-8 8"/>
+          <rect x="19" y="10" width="6" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+          <rect x="27" y="10" width="6" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M21 18h2M29 18h2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path class="logo-del" d="M21 27h2" stroke-width="2" stroke-linecap="round"/>
+          <path class="logo-ins" d="M29 27h2" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <p class="eyebrow">JSON diff</p>
+        <span class="brand-name">Diff with surgical highlights</span>
+      </div>
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="/">Home</a>
+      <a href="/guides/" aria-current="page">Guides</a>
+      <a href="/about.html">About</a>
+      <a href="/privacy.html">Privacy</a>
+      <a href="/contact.html">Contact</a>
+    </nav>
+  </header>
+
+  <main class="page prose">
+    <span class="kicker">Guide</span>
+    <h1 class="page-title">How to diff OpenAPI JSON schemas for breaking API changes</h1>
+    <div class="article-meta"><span>Updated August 13, 2026</span><span>~8 min read</span></div>
+    <p class="lede">OpenAPI documents are contracts. A JSON diff between two versions of that contract can show whether an API release is safe, risky, or clearly breaking.</p>
+    <h2>Compare generated JSON, not hand-edited YAML</h2>
+    <p>Many teams author OpenAPI as YAML but publish it as JSON. For comparison, use the generated JSON form. That removes comments, anchors, and formatting choices so the diff focuses on the contract that clients actually consume.</p>
+    <h2>The highest-signal paths</h2>
+    <ul><li><strong><code>paths</code>:</strong> added and removed endpoints, methods, parameters, and responses.</li><li><strong><code>components.schemas</code>:</strong> changed object shapes, required fields, enum values, and property types.</li><li><strong><code>security</code> and <code>securitySchemes</code>:</strong> authentication requirements that can break previously working clients.</li><li><strong><code>servers</code>:</strong> base URLs or environments that changed.</li></ul>
+    <h2>Changes that are usually breaking</h2>
+    <p>A removed path, removed method, removed response property, stricter enum, new required request field, or changed primitive type is usually breaking. A response field changing from string to number can break just as hard as deleting it because client code often assumes a type before validation.</p>
+    <h2>Example: response contract changed</h2>
+    <div class="two-up"><figure class="code-block"><div class="code-head"><span class="code-label"><span class="dot red"></span>Before</span><span class="code-tag">schema v1</span></div><pre><code>{
+  "components": {
+    "schemas": {
+      "User": {
+        "required": ["id"],
+        "properties": { "email": { "type": "string" } }
+      }
+    }
+  }
+}</code></pre></figure><figure class="code-block"><div class="code-head"><span class="code-label"><span class="dot green"></span>After</span><span class="code-tag">schema v2</span></div><pre><code>{
+  "components": {
+    "schemas": {
+      "User": {
+        "required": ["id", "email"],
+        "properties": { "email": { "type": "string", "format": "email" } }
+      }
+    }
+  }
+}</code></pre></figure></div>
+    <p>The added <code>format</code> may be harmless documentation, but adding <code>email</code> to <code>required</code> changes validation for requests or responses that use that schema. The diff gives you the path; the API context tells you whether that path affects clients.</p>
+    <h2>Separate documentation noise from contract changes</h2>
+    <p>OpenAPI files often change descriptions, examples, tags, and summaries. Those can produce a large diff without changing behavior. Scan and optionally ignore documentation paths when the review goal is compatibility. Do not ignore schema, parameter, response, or security paths unless you have another compatibility check covering them.</p>
+    <h2>Use diffs before release notes</h2>
+    <p>Release notes are human-written and can miss things. A schema diff is mechanical. Run it before writing notes, then use the confirmed changes to draft a release summary: endpoints added, fields deprecated, response types changed, and known migration work for clients.</p>
+    <h2>Practical workflow</h2>
+    <ol><li>Export the old and new OpenAPI documents as strict JSON.</li><li>Compare them in change list view.</li><li>Group changes under <code>paths</code>, <code>components.schemas</code>, and <code>security</code>.</li><li>Mark each as breaking, additive, documentation-only, or unknown.</li><li>Review unknowns with the API owner before release.</li></ol>
+    <p><a class="cta" href="/">Compare two OpenAPI JSON files <kbd>Ctrl ↵</kbd></a></p>
+    <p>Related: <a href="/guides/diff-json-api-responses.html">Diffing JSON API responses</a> · <a href="/guides/json-vs-yaml.html">JSON vs YAML</a></p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p class="footer-brand">JSON Diff — a free, open-source JSON comparison tool.</p>
+      <nav class="footer-nav" aria-label="Footer">
+        <a href="/">Home</a>
+        <a href="/guides/">Guides</a>
+        <a href="/about.html">About</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/contact.html">Contact</a>
+      </nav>
+      <p class="footer-note">Runs entirely in your browser — your JSON never leaves your device. No sign-up, no account, no server-side processing.</p>
+    </div>
+  </footer>
+
+</body>
+</html>

@@ -321,25 +321,6 @@ a.header-brand { text-decoration: none; color: inherit; }
   color: var(--text-dim);
 }
 
-/* --- Ad slots: dormant unless .ads-on (set by ad-slot.js) --- */
-.ad-slot { display: none; }
-.ads-on .ad-slot {
-  display: block;
-  min-height: 90px;
-  margin: 40px auto;
-  max-width: 760px;
-  text-align: center;
-}
-.ads-on .ad-slot .ad-note {
-  display: block;
-  font-size: 0.65rem;
-  color: var(--text-dim);
-  opacity: 0.6;
-  margin-bottom: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
 /* --- Site footer --- */
 .site-footer {
   margin-top: 56px;

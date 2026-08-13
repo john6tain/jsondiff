@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSON Diff for Webhooks: Debugging Payload Changes Between Events</title>
+  <meta name="description" content="Webhook payloads change over time. Learn how to compare old and new events to find renamed fields, missing IDs, type changes, and ordering noise.">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#070b12">
+  <link rel="canonical" href="https://johnsondiff.vercel.app/guides/json-diff-for-webhooks.html">
+
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="JSON Diff for Webhooks: Debugging Payload Changes Between Events">
+  <meta property="og:description" content="Webhook payloads change over time. Learn how to compare old and new events to find renamed fields, missing IDs, type changes, and ordering noise.">
+  <meta property="og:site_name" content="JSON Diff">
+  <meta property="og:url" content="https://johnsondiff.vercel.app/guides/json-diff-for-webhooks.html">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="JSON Diff for Webhooks: Debugging Payload Changes Between Events">
+  <meta name="twitter:description" content="Webhook payloads change over time. Learn how to compare old and new events to find renamed fields, missing IDs, type changes, and ordering noise.">
+
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "JSON Diff for Webhooks: Debugging Payload Changes Between Events",
+      "description": "Webhook payloads change over time. Learn how to compare old and new events to find renamed fields, missing IDs, type changes, and ordering noise.",
+      "datePublished": "2026-08-13",
+      "dateModified": "2026-08-13",
+      "author": { "@type": "Person", "name": "JSON Diff" },
+      "publisher": { "@type": "Organization", "name": "JSON Diff", "url": "https://johnsondiff.vercel.app/" },
+      "mainEntityOfPage": "https://johnsondiff.vercel.app/guides/json-diff-for-webhooks.html"
+    }
+  </script>
+
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/content.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="header">
+    <a class="header-brand" href="/">
+      <div class="logo" aria-hidden="true">
+        <svg viewBox="0 0 52 44" role="img">
+          <path class="logo-brace" d="M15 7c-5.5 0-8 3-8 8v3c0 2.2-1.4 3.5-3.4 4 2 0.5 3.4 1.8 3.4 4v3c0 5 2.5 8 8 8"/>
+          <path class="logo-brace" d="M37 7c5.5 0 8 3 8 8v3c0 2.2 1.4 3.5 3.4 4-2 0.5-3.4 1.8-3.4 4v3c0 5-2.5 8-8 8"/>
+          <rect x="19" y="10" width="6" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+          <rect x="27" y="10" width="6" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M21 18h2M29 18h2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path class="logo-del" d="M21 27h2" stroke-width="2" stroke-linecap="round"/>
+          <path class="logo-ins" d="M29 27h2" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <p class="eyebrow">JSON diff</p>
+        <span class="brand-name">Diff with surgical highlights</span>
+      </div>
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="/">Home</a>
+      <a href="/guides/" aria-current="page">Guides</a>
+      <a href="/about.html">About</a>
+      <a href="/privacy.html">Privacy</a>
+      <a href="/contact.html">Contact</a>
+    </nav>
+  </header>
+
+  <main class="page prose">
+    <span class="kicker">Guide</span>
+    <h1 class="page-title">JSON diff for webhooks: debugging payload changes between events</h1>
+    <div class="article-meta"><span>Updated August 13, 2026</span><span>~7 min read</span></div>
+    <p class="lede">Webhook bugs are hard because the failing payload usually arrives after the code that handles it has already shipped. A JSON diff between a known-good event and a failing event can show the contract change quickly.</p>
+    <h2>Save real examples before you need them</h2>
+    <p>The best before-value is a sanitized payload from a successful webhook. Keep fixtures for important event types: payment succeeded, subscription canceled, user updated, invoice failed. Remove secrets and personal data, but preserve shape, field names, and representative types.</p>
+    <h2>What usually breaks webhook consumers</h2>
+    <ul><li><strong>Missing IDs:</strong> a field used for idempotency or lookup disappears.</li><li><strong>Renamed event types:</strong> routing code listens for the old string and ignores the new one.</li><li><strong>Type changes:</strong> an amount changes from cents as a number to a formatted string.</li><li><strong>Nested moves:</strong> customer data moves under <code>data.object.customer</code> or a similar envelope.</li><li><strong>Array ordering:</strong> line items or status history arrive in a different order than the handler assumed.</li></ul>
+    <h2>Example: event type and amount changed</h2>
+    <div class="two-up"><figure class="code-block"><div class="code-head"><span class="code-label"><span class="dot red"></span>Before</span><span class="code-tag">event old</span></div><pre><code>{
+  "type": "invoice.paid",
+  "data": { "amount": 4900, "currency": "usd" }
+}</code></pre></figure><figure class="code-block"><div class="code-head"><span class="code-label"><span class="dot green"></span>After</span><span class="code-tag">event new</span></div><pre><code>{
+  "type": "invoice.payment_succeeded",
+  "data": { "amount": "49.00", "currency": "usd" }
+}</code></pre></figure></div>
+    <p>The handler may fail twice: first because the event router no longer matches <code>invoice.paid</code>, and again because math on <code>amount</code> now receives a string. The diff makes both problems visible without stepping through the whole webhook pipeline.</p>
+    <h2>Sanitize without destroying the shape</h2>
+    <p>Never paste secrets, tokens, or personal information into bug reports. Replace values with placeholders of the same type: keep strings as strings, numbers as numbers, booleans as booleans, and arrays as arrays. Changing <code>4900</code> to <code>"amount"</code> can hide exactly the type problem you are trying to diagnose.</p>
+    <h2>Compare event types separately</h2>
+    <p>Do not compare a subscription event to an invoice event and expect a clean result. Different event types have different shapes. Compare old and new examples of the same event type first; then compare related event types only when you are intentionally studying the differences between them.</p>
+    <h2>After the diff</h2>
+    <p>Turn the confirmed changes into tests. If a field became optional, add a fixture without it. If an amount type changed, add validation before math. If an event type was renamed, make routing explicit and keep a compatibility branch only as long as the sender can emit both versions.</p>
+    <p><a class="cta" href="/">Compare two webhook payloads <kbd>Ctrl ↵</kbd></a></p>
+    <p>Related: <a href="/guides/diff-json-api-responses.html">Diffing JSON API responses</a> · <a href="/guides/diff-nested-json-objects.html">Nested JSON objects</a></p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p class="footer-brand">JSON Diff — a free, open-source JSON comparison tool.</p>
+      <nav class="footer-nav" aria-label="Footer">
+        <a href="/">Home</a>
+        <a href="/guides/">Guides</a>
+        <a href="/about.html">About</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/contact.html">Contact</a>
+      </nav>
+      <p class="footer-note">Runs entirely in your browser — your JSON never leaves your device. No sign-up, no account, no server-side processing.</p>
+    </div>
+  </footer>
+
+</body>
+</html>

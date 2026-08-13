@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How to Diff Deeply Nested JSON Objects Without Missing the Real Change</title>
+  <meta name="description" content="Deep JSON payloads hide important changes. Learn how to read nested paths, unwrap envelopes, and compare only the subtree that matters.">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#070b12">
+  <link rel="canonical" href="https://johnsondiff.vercel.app/guides/diff-nested-json-objects.html">
+
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="How to Diff Deeply Nested JSON Objects Without Missing the Real Change">
+  <meta property="og:description" content="Deep JSON payloads hide important changes. Learn how to read nested paths, unwrap envelopes, and compare only the subtree that matters.">
+  <meta property="og:site_name" content="JSON Diff">
+  <meta property="og:url" content="https://johnsondiff.vercel.app/guides/diff-nested-json-objects.html">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="How to Diff Deeply Nested JSON Objects Without Missing the Real Change">
+  <meta name="twitter:description" content="Deep JSON payloads hide important changes. Learn how to read nested paths, unwrap envelopes, and compare only the subtree that matters.">
+
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "How to Diff Deeply Nested JSON Objects Without Missing the Real Change",
+      "description": "Deep JSON payloads hide important changes. Learn how to read nested paths, unwrap envelopes, and compare only the subtree that matters.",
+      "datePublished": "2026-08-13",
+      "dateModified": "2026-08-13",
+      "author": { "@type": "Person", "name": "JSON Diff" },
+      "publisher": { "@type": "Organization", "name": "JSON Diff", "url": "https://johnsondiff.vercel.app/" },
+      "mainEntityOfPage": "https://johnsondiff.vercel.app/guides/diff-nested-json-objects.html"
+    }
+  </script>
+
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/content.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="header">
+    <a class="header-brand" href="/">
+      <div class="logo" aria-hidden="true">
+        <svg viewBox="0 0 52 44" role="img">
+          <path class="logo-brace" d="M15 7c-5.5 0-8 3-8 8v3c0 2.2-1.4 3.5-3.4 4 2 0.5 3.4 1.8 3.4 4v3c0 5 2.5 8 8 8"/>
+          <path class="logo-brace" d="M37 7c5.5 0 8 3 8 8v3c0 2.2 1.4 3.5 3.4 4-2 0.5-3.4 1.8-3.4 4v3c0 5-2.5 8-8 8"/>
+          <rect x="19" y="10" width="6" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+          <rect x="27" y="10" width="6" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M21 18h2M29 18h2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path class="logo-del" d="M21 27h2" stroke-width="2" stroke-linecap="round"/>
+          <path class="logo-ins" d="M29 27h2" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <p class="eyebrow">JSON diff</p>
+        <span class="brand-name">Diff with surgical highlights</span>
+      </div>
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="/">Home</a>
+      <a href="/guides/" aria-current="page">Guides</a>
+      <a href="/about.html">About</a>
+      <a href="/privacy.html">Privacy</a>
+      <a href="/contact.html">Contact</a>
+    </nav>
+  </header>
+
+  <main class="page prose">
+    <span class="kicker">Guide</span>
+    <h1 class="page-title">How to diff deeply nested JSON objects without missing the real change</h1>
+    <div class="article-meta"><span>Updated August 13, 2026</span><span>~7 min read</span></div>
+    <p class="lede">The most important JSON changes are often buried several levels down: a flag inside configuration, a status inside metadata, or a nested response field that moved under a new object.</p>
+    <h2>Read paths as a map</h2>
+    <p>A structural diff is valuable because it reports full paths. <code>deploy.strategy.name</code> is not just a label; it is the route from the document root to the changed value. When a payload is large, paths are more useful than line numbers because they survive formatting changes and help you jump straight to the object that changed.</p>
+    <h2>First confirm both sides have the same envelope</h2>
+    <p>APIs often wrap data: <code>{"data": ...}</code>, <code>{"result": ...}</code>, or <code>{"items": [...]}</code>. If one side includes the envelope and the other side does not, the diff will be technically correct but useless. Everything appears removed from one path and added at another. Unwrap both sides to the same level before comparing.</p>
+    <h2>Example: a value moved, not changed</h2>
+    <div class="two-up"><figure class="code-block"><div class="code-head"><span class="code-label"><span class="dot red"></span>Before</span><span class="code-tag">settings.json</span></div><pre><code>{
+  "feature": {
+    "enabled": true,
+    "owner": "platform"
+  }
+}</code></pre></figure><figure class="code-block"><div class="code-head"><span class="code-label"><span class="dot green"></span>After</span><span class="code-tag">settings.json</span></div><pre><code>{
+  "feature": {
+    "flags": { "enabled": true },
+    "owner": "platform"
+  }
+}</code></pre></figure></div>
+    <p>The value <code>true</code> did not change. The path changed from <code>feature.enabled</code> to <code>feature.flags.enabled</code>. That distinction matters: existing code that reads the old path fails even though the setting still exists.</p>
+    <h2>Compare the subtree when the full document is noisy</h2>
+    <p>If the full payload contains timestamps, request IDs, pagination cursors, or generated metadata, those fields can bury the useful change. Copy the nested object you care about into both panels and compare only that subtree. This is not cheating; it is focusing the question. A smaller diff that answers the real question is better than a huge diff nobody reads.</p>
+    <h2>Watch for arrays inside nested objects</h2>
+    <p>Once an array appears in a path, indices matter. <code>users[3].email</code> means the fourth item in the current order. If the array was reordered, a nested field may appear to change only because a different object now occupies that index. Sort by a stable key, such as <code>id</code>, before comparing if order is incidental.</p>
+    <h2>Practical reading order</h2>
+    <ol><li>Look for top-level added or removed envelopes.</li><li>Scan changed paths for moved fields: same value, different location.</li><li>Separate generated metadata from business fields.</li><li>Drill into the smallest subtree that still contains the question.</li><li>Interpret array paths with index meaning in mind.</li></ol>
+    <p><a class="cta" href="/">Diff a nested object <kbd>Ctrl ↵</kbd></a></p>
+    <p>Related: <a href="/guides/json-arrays-ordering.html">JSON arrays and ordering</a> · <a href="/guides/json-diff-mistakes.html">Common JSON diff mistakes</a></p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p class="footer-brand">JSON Diff — a free, open-source JSON comparison tool.</p>
+      <nav class="footer-nav" aria-label="Footer">
+        <a href="/">Home</a>
+        <a href="/guides/">Guides</a>
+        <a href="/about.html">About</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/contact.html">Contact</a>
+      </nav>
+      <p class="footer-note">Runs entirely in your browser — your JSON never leaves your device. No sign-up, no account, no server-side processing.</p>
+    </div>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSON Patch vs JSON Diff: Which Output Do You Need?</title>
+  <meta name="description" content="JSON Patch and JSON diff answer different questions. Learn when you need a human-readable comparison, a machine patch, or both.">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#070b12">
+  <link rel="canonical" href="https://johnsondiff.vercel.app/guides/json-patch-vs-json-diff.html">
+
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="JSON Patch vs JSON Diff: Which Output Do You Need?">
+  <meta property="og:description" content="JSON Patch and JSON diff answer different questions. Learn when you need a human-readable comparison, a machine patch, or both.">
+  <meta property="og:site_name" content="JSON Diff">
+  <meta property="og:url" content="https://johnsondiff.vercel.app/guides/json-patch-vs-json-diff.html">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="JSON Patch vs JSON Diff: Which Output Do You Need?">
+  <meta name="twitter:description" content="JSON Patch and JSON diff answer different questions. Learn when you need a human-readable comparison, a machine patch, or both.">
+
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "JSON Patch vs JSON Diff: Which Output Do You Need?",
+      "description": "JSON Patch and JSON diff answer different questions. Learn when you need a human-readable comparison, a machine patch, or both.",
+      "datePublished": "2026-08-13",
+      "dateModified": "2026-08-13",
+      "author": { "@type": "Person", "name": "JSON Diff" },
+      "publisher": { "@type": "Organization", "name": "JSON Diff", "url": "https://johnsondiff.vercel.app/" },
+      "mainEntityOfPage": "https://johnsondiff.vercel.app/guides/json-patch-vs-json-diff.html"
+    }
+  </script>
+
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/content.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="header">
+    <a class="header-brand" href="/">
+      <div class="logo" aria-hidden="true">
+        <svg viewBox="0 0 52 44" role="img">
+          <path class="logo-brace" d="M15 7c-5.5 0-8 3-8 8v3c0 2.2-1.4 3.5-3.4 4 2 0.5 3.4 1.8 3.4 4v3c0 5 2.5 8 8 8"/>
+          <path class="logo-brace" d="M37 7c5.5 0 8 3 8 8v3c0 2.2 1.4 3.5 3.4 4-2 0.5-3.4 1.8-3.4 4v3c0 5-2.5 8-8 8"/>
+          <rect x="19" y="10" width="6" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+          <rect x="27" y="10" width="6" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M21 18h2M29 18h2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path class="logo-del" d="M21 27h2" stroke-width="2" stroke-linecap="round"/>
+          <path class="logo-ins" d="M29 27h2" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <p class="eyebrow">JSON diff</p>
+        <span class="brand-name">Diff with surgical highlights</span>
+      </div>
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="/">Home</a>
+      <a href="/guides/" aria-current="page">Guides</a>
+      <a href="/about.html">About</a>
+      <a href="/privacy.html">Privacy</a>
+      <a href="/contact.html">Contact</a>
+    </nav>
+  </header>
+
+  <main class="page prose">
+    <span class="kicker">Guide</span>
+    <h1 class="page-title">JSON Patch vs JSON Diff: which output do you need?</h1>
+    <div class="article-meta"><span>Updated August 13, 2026</span><span>~7 min read</span></div>
+    <p class="lede">People use “JSON diff” to mean two related but different things: a readable explanation of what changed, and a machine instruction for changing one document into another. JSON Patch is the second one. A diff viewer is usually the first.</p>
+    <h2>The short version</h2>
+    <p>A JSON diff is evidence. It says a key was added, a value was removed, or a nested field changed from one value to another. It is meant for review: a developer, analyst, or incident responder can read the result and decide whether the change is expected.</p>
+    <p>JSON Patch, standardized as RFC 6902, is an operation list. It says <code>add</code> this path, <code>remove</code> that path, or <code>replace</code> a value at a specific location. It is meant for execution: a program can apply the operations to an old document and produce the new one.</p>
+    <h2>Example: same change, different output</h2>
+    <div class="two-up"><figure class="code-block"><div class="code-head"><span class="code-label"><span class="dot red"></span>Before</span><span class="code-tag">profile.json</span></div><pre><code>{
+  "name": "Ada",
+  "role": "admin"
+}</code></pre></figure><figure class="code-block"><div class="code-head"><span class="code-label"><span class="dot green"></span>After</span><span class="code-tag">profile.json</span></div><pre><code>{
+  "name": "Ada",
+  "role": "editor",
+  "active": true
+}</code></pre></figure></div>
+    <p>A readable diff would say <code>role</code> changed from <code>admin</code> to <code>editor</code>, and <code>active</code> was added as <code>true</code>. JSON Patch would represent the same change as operations: replace <code>/role</code> with <code>editor</code>, then add <code>/active</code> with <code>true</code>.</p>
+    <h2>When a human diff is better</h2>
+    <ul><li><strong>Code review:</strong> reviewers need context, old value, new value, and a path they can discuss.</li><li><strong>Debugging:</strong> the question is not “how do I transform it?” but “which field broke the client?”</li><li><strong>Audits:</strong> a reviewer wants to know whether a change was intentional, risky, or unrelated noise.</li><li><strong>Learning a payload:</strong> a table of added, removed, and edited values is easier to scan than an operation list.</li></ul>
+    <h2>When JSON Patch is better</h2>
+    <p>JSON Patch shines when another system needs to apply a change. APIs use it for partial updates because the client can send only the fields it wants to alter. Synchronization systems use it to move documents across a network without sending a full copy. Test fixtures use it when they want to describe a known mutation compactly.</p>
+    <p>Patch operations are precise, but precision cuts both ways. Paths are positional for arrays, so removing index <code>/items/1</code> means “remove whatever is currently at index 1.” If another process inserted an item earlier, the patch may affect the wrong value. A readable diff helps you spot that kind of risk before an operation list is applied blindly.</p>
+    <h2>Why this tool focuses on review</h2>
+    <p>The JSON Diff site is optimized for understanding: split view for reading line-by-line changes, and change list view for scanning structural paths. It does not pretend that every comparison has a safe patch. Sometimes two payloads differ because an API changed shape, a config drifted, or an array was reordered. In those cases the right next step is a human decision, not automatic mutation.</p>
+    <h2>Practical rule</h2>
+    <p>If you need to explain a change to a person, use a JSON diff. If you need to apply a change to a document, use JSON Patch. In many real workflows, use both: inspect the diff first, then generate or approve the patch once the change makes sense.</p>
+    <p><a class="cta" href="/">Compare two JSON documents <kbd>Ctrl ↵</kbd></a></p>
+    <p>Related: <a href="/guides/json-diff-mistakes.html">Common JSON diff mistakes</a> · <a href="/guides/json-arrays-ordering.html">JSON arrays and ordering</a></p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p class="footer-brand">JSON Diff — a free, open-source JSON comparison tool.</p>
+      <nav class="footer-nav" aria-label="Footer">
+        <a href="/">Home</a>
+        <a href="/guides/">Guides</a>
+        <a href="/about.html">About</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/contact.html">Contact</a>
+      </nav>
+      <p class="footer-note">Runs entirely in your browser — your JSON never leaves your device. No sign-up, no account, no server-side processing.</p>
+    </div>
+  </footer>
+
+</body>
+</html>
