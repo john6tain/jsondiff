@@ -4,7 +4,7 @@ A fast, client-side JSON diff tool with surgical character-level highlights, spl
 
 **Live:** [johnsondiff.vercel.app](https://johnsondiff.vercel.app)
 
-**Version:** 0.0.1
+**Version:** 1.0.0
 
 ## Features
 
@@ -107,9 +107,10 @@ Before enabling ads later, update the privacy policy, add real AdSense units onl
 
 ## Versioning
 
-The app displays its version in the bottom-left corner. Current version: **0.0.1**.
+The app displays its version in the bottom-left corner. Current version: **1.0.0**.
 
-To bump the version, update the version string in:
+To bump the version, update the version string in both places:
+- `package.json` — the npm package `version`
 - `public/index.html` — the `<div class="version-badge">` element
 
 ## Deployment
